@@ -1,0 +1,33 @@
+{
+  "name": "homebridge-envisalink",
+  "version": "0.1.0",
+  "description": "A homebridge plugin for the EnvisaLink alarm module",
+  "main": "index.js",
+  "scripts": {
+    "test": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dustindclark/homebridge-envisalink"
+  },
+  "keywords": [
+    "homebridge-plugin",
+    "envisalink",
+    "dsm"
+  ],
+  "author": "Dustin D. Clark",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dustindclark/homebridge-envisalink/issues"
+  },
+  "engines": {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.2.0"
+  },
+  "dependencies": {
+    "net": ">=1.0",
+    "nodealarmproxy": "0.7.2",
+    "dateformat": ">=1.0.12"
+  },
+  "homepage": "https://github.com/dustindclark/homebridge-envisalink#readme"
+}
