@@ -1,23 +1,36 @@
 var net = require("net");
-var nap = require('./node_modules/nodealarmproxy/index.js');
+var nap = require('nodealarmproxy/index.js');
+var elink = require('nodealarmproxy/envisalink.js');
 var dateFormat = require('dateformat');
-var Service, Characteristic;
+var Service, Characteristic, Accessory;
+var inherits = require('util').inherits;
 
 /* Register the plugin with homebridge */
 module.exports = function (homebridge) {
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
+    Accessory = homebridge.hap.Accessory;
+    uuid = homebridge.hap.uuid;
 
-    homebridge.registerAccessory("homebridge-envisalink", "Envisalink", EnvisalinkAccessory);
+    var acc = EnvisalinkAccessory.prototype;
+    inherits(EnvisalinkAccessory, Accessory);
+    EnvisalinkAccessory.prototype.parent = Accessory.prototype;
+    for (var mn in acc) {
+        EnvisalinkAccessory.prototype[mn] = acc[mn];
+    }
+
+    homebridge.registerPlatform("homebridge-envisalink", "Envisalink", EnvisalinkPlatform);
 }
 
-function EnvisalinkAccessory(log, config) {
+function EnvisalinkPlatform(log, config) {
     this.log = log;
-    this.name = config.name;
     this.deviceType = config.deviceType;
     this.pin = config.pin;
-    this.partition = config.partition ? config.partition : "1";
-    this.log("Configuring Envisalink accessory.  Name: " + this.name + ", Host: " + config.host + ", port: " + config.port + ", type: " + this.deviceType);
+    this.password = config.password;
+    this.partitions = config.partitions;
+    this.zones = config.zones;
+
+    this.log("Configuring Envisalink platform,  Host: " + config.host + ", port: " + config.port + ", type: " + this.deviceType);
     this.log("Starting node alarm proxy...");
     this.alarmConfig = {
         password: config.password,
@@ -25,47 +38,72 @@ function EnvisalinkAccessory(log, config) {
         actualhost: config.host,
         actualport: config.port,
         serverhost: '0.0.0.0',
-        serverport: (config.serverport ? config.serverport : 4026),
-        zone: config.zones ? config.zones : 7,
-        partition: this.partition,
+        serverport: config.serverport ? config.serverport : 4026,
+        zone: this.zones && this.zones.length > 0 ? this.zones.length : null,
+        partition: this.partitions ? this.partitions.length : 1,
         proxyenable: true,
         atomicEvents: true
     };
+    this.log("Zones: " + this.alarmConfig.zone);
     this.alarm = nap.initConfig(this.alarmConfig);
     this.log("Node alarm proxy started.  Listening for connections at: " + this.alarmConfig.serverhost + ":" + this.alarmConfig.serverport);
     this.alarm.on('data', this.systemUpdate.bind(this));
     this.alarm.on('zone', this.zoneUpdate.bind(this));
     this.alarm.on('partition', this.partitionUpdate.bind(this));
 
-    this.service = new Service.SecuritySystem(this.name);
-    this.service
-        .getCharacteristic(Characteristic.SecuritySystemCurrentState)
-        .on('get', this.getAlarmState.bind(this));
-    this.service
-        .getCharacteristic(Characteristic.SecuritySystemTargetState)
-        .on('get', this.getAlarmState.bind(this))
-        .on('set', this.setAlarmState.bind(this));
-    this.service
-        .addCharacteristic(Characteristic.StatusLowBattery)
-        .on('get', this.getBatteryLevel.bind(this));
-    this.log(JSON.stringify(this.alarm));
+    this.platformAccessories = [];
+    for (var i = 0; i < this.partitions.length; i++) {
+        var partition = this.partitions[i];
+        partition.pin = config.pin;
+        this.platformAccessories.push(new EnvisalinkAccessory(this.log, "partition", partition, i + 1));
+    }
+    if (!config.suppressZoneAccessories) {
+        for (var i = 0; i < this.zones.length; i++) {
+            var zone = this.zones[i];
+            if (zone.type == "motion" || zone.type == "window" || zone.type == "door") {
+                this.platformAccessories.push(new EnvisalinkAccessory(this.log, zone.type, zone, zone.partition, i + 1));
+            } else {
+                console.log("Unhandled accessory type: " + zone.type);
+            }
+        }
+    }
+
+    //TODO: this gives incorrect password??
     //hhmmMMDDYY according to docs
     //var date = dateFormat(new Date(), "HHMMmmddyy");
     //this.log("Setting the current time on the alarm system to: " + date)
-    //nap.manualCommand("010" + date, function(data) {
-    //});
+    //nap.manualCommand("010" + date, function (data) {
+    //    this.log("Time set successfully. " + data)
+    //}.bind(this));
+
 }
 
-EnvisalinkAccessory.prototype.systemUpdate = function (data) {
+
+EnvisalinkPlatform.prototype.systemUpdate = function (data) {
     this.log('System status changed to: ', data);
+    for (var i = 0; i < this.platformAccessories.length; i++) {
+        var accessory = this.platformAccessories[i];
+        if (!accessory.zone && accessory.partition == data.partition) {
+            accessory.systemStatus = elink.tpicommands[data.code];
+            console.log("Set system status on accessory " + accessory.name + ' to ' + JSON.stringify(accessory.status));
+            break;
+        }
+    }
 }
 
-EnvisalinkAccessory.prototype.zoneUpdate = function (data) {
+EnvisalinkPlatform.prototype.zoneUpdate = function (data) {
     this.log('Zone status changed to:', data);
+    for (var i = 0; i < this.platformAccessories.length; i++) {
+        var accessory = this.platformAccessories[i];
+        if (accessory.zone == data.zone) {
+            accessory.status = elink.tpicommands[data.code];
+            console.log("Set status on accessory " + accessory.name + ' to ' + JSON.stringify(accessory.status));
+            break;
+        }
+    }
 }
 
-
-EnvisalinkAccessory.prototype.partitionUpdate = function (data) {
+EnvisalinkPlatform.prototype.partitionUpdate = function (data) {
     var watchevents = ['601', '602', '609', '610', '650', '651', '652', '654', '656', '657'];
     this.log('Partition status changed to:', data);
     if (data.code == "652") {
@@ -76,17 +114,94 @@ EnvisalinkAccessory.prototype.partitionUpdate = function (data) {
             this.awayStay = Characteristic.SecuritySystemCurrentState.AWAY_ARM;
         }
     }
-    if (watchevents.indexOf(data.code) != -1) {
+    for (var i = 0; i < this.platformAccessories.length; i++) {
+        var accessory = this.platformAccessories[i];
+        if (!accessory.zone && accessory.partition == data.partition) {
+            accessory.status = elink.tpicommands[data.code];
+            console.log("Set status on accessory " + accessory.name + ' to ' + JSON.stringify(accessory.status));
+            break;
+        }
+    }
+}
 
+EnvisalinkPlatform.prototype.accessories = function (callback) {
+    callback(this.platformAccessories);
+}
+
+function EnvisalinkAccessory(log, accessoryType, config, partition, zone) {
+    this.log = log;
+    this.name = config.name;
+    var id = 'envisalink.' + partition;
+    if (zone) {
+        id += "." + zone;
+    }
+    this.uuid_base = uuid.generate(id);
+    Accessory.call(this, this.name, this.uuid_base);
+
+    this.accessoryType = accessoryType;
+    this.partition = partition;
+    this.pin = config.pin;
+    this.zone = zone;
+    this.status = null;
+
+    this.services = [];
+    if (this.accessoryType == "partition") {
+        var service = new Service.SecuritySystem(this.name);
+        service
+            .getCharacteristic(Characteristic.SecuritySystemCurrentState)
+            .on('get', this.getAlarmState.bind(this));
+        service
+            .getCharacteristic(Characteristic.SecuritySystemTargetState)
+            .on('get', this.getAlarmState.bind(this))
+            .on('set', this.setAlarmState.bind(this));
+        this.services.push(service);
+    } else if (this.accessoryType == "motion") {
+        var service = new Service.MotionSensor(this.name);
+        service
+            .getCharacteristic(Characteristic.MotionDetected)
+            .on('get', this.getMotionStatus.bind(this));
+        this.services.push(service);
+    } else if (this.accessoryType == "door") {
+        var service = new Service.Door(this.name);
+        service
+            .getCharacteristic(Characteristic.CurrentPosition)
+            .on('get', this.getContactPosition.bind(this));
+        service
+            .getCharacteristic(Characteristic.TargetPosition)
+            .on('get', this.getContactPosition.bind(this));
+        service
+            .getCharacteristic(Characteristic.PositionState)
+            .on('get', this.getContactState.bind(this));
+        this.services.push(service);
+    } else if (this.accessoryType == "window") {
+        var service = new Service.Window(this.name);
+        service
+            .getCharacteristic(Characteristic.CurrentPosition)
+            .on('get', this.getContactPosition.bind(this));
+        service
+            .getCharacteristic(Characteristic.TargetPosition)
+            .on('get', this.getContactPosition.bind(this));
+        service
+            .getCharacteristic(Characteristic.PositionState)
+            .on('get', this.getContactState.bind(this));
+        this.services.push(service);
     }
 }
 
 EnvisalinkAccessory.prototype.getServices = function () {
-    return [this.service];
+    return this.services;
+}
+
+EnvisalinkAccessory.prototype.getMotionStatus = function (callback) {
+    if (this.status && this.status.send == "open") {
+        callback(null, true);
+    } else {
+        callback(null, false);
+    }
 }
 
 EnvisalinkAccessory.prototype.getAlarmState = function (callback) {
-    this.log("Getting current alarm state...")
+    this.log("Getting current alarm state...");
     nap.getCurrent(function (currentState) {
         this.log("Current state is " + JSON.stringify(currentState));
         if (currentState && currentState.partition && currentState.partition[this.partition]) { //TODO: multiple partition support?
@@ -98,7 +213,7 @@ EnvisalinkAccessory.prototype.getAlarmState = function (callback) {
             } else if (partition.send == "armed") {
                 if (this.awayStay) {
                     status = this.awayStay;
-                } else if(this.lastTargetState == Characteristic.SecuritySystemCurrentState.AWAY_ARM ||
+                } else if (this.lastTargetState == Characteristic.SecuritySystemCurrentState.AWAY_ARM ||
                     this.lastTargetState == Characteristic.SecuritySystemCurrentState.STAY_ARM ||
                     this.lastTargetState == Characteristic.SecuritySystemCurrentState.NIGHT_ARM) {
                     status = this.lastTargetState;
@@ -137,6 +252,14 @@ EnvisalinkAccessory.prototype.setAlarmState = function (state, callback) {
     }
 }
 
-EnvisalinkAccessory.prototype.getBatteryLevel = function (callback) {
-    callback(null, Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
+EnvisalinkAccessory.prototype.getContactPosition = function (callback) {
+    if (this.status && this.status.send == "open") {
+        callback(null, 0);
+    } else {
+        callback(null, 100);
+    }
+}
+
+EnvisalinkAccessory.prototype.getContactState = function (callback) {
+    callback(null, Characteristic.PositionState.STOPPED);
 }
