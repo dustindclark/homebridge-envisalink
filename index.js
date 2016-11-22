@@ -69,9 +69,6 @@ function EnvisalinkPlatform(log, config) {
         }
     }
 
-    nap.manualCommand("000");
-    nap.manualCommand("001");
-
     //TODO: this gives incorrect password??
     //hhmmMMDDYY according to docs
     //var date = dateFormat(new Date(), "HHMMmmddyy");
