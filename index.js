@@ -111,8 +111,8 @@ EnvisalinkPlatform.prototype.zoneUpdate = function (data) {
 
                 } else if (accessory.accessoryType == "door" || accessory.accessoryType == "window") {
 
-                    accessory.getContactPosition(function (nothing, resultat) {
-                        accservice.getCharacteristic(Characteristic.CurrentPosition).setValue(resultat);
+                    accessory.getContactSensorState(function (nothing, resultat) {
+                        accservice.getCharacteristic(Characteristic.ContactSensorState).setValue(resultat);
                     });
 
                 }
@@ -221,28 +221,16 @@ function EnvisalinkAccessory(log, accessoryType, config, partition, zone) {
             .on('get', this.getMotionStatus.bind(this));
         this.services.push(service);
     } else if (this.accessoryType == "door") {
-        var service = new Service.Door(this.name);
+        var service = new Service.ContactSensor(this.name);
         service
-            .getCharacteristic(Characteristic.CurrentPosition)
-            .on('get', this.getContactPosition.bind(this));
-        service
-            .getCharacteristic(Characteristic.TargetPosition)
-            .on('get', this.getContactPosition.bind(this));
-        service
-            .getCharacteristic(Characteristic.PositionState)
-            .on('get', this.getContactState.bind(this));
-        this.services.push(service);
+            .getCharacteristic(Characteristic.ContactSensorState)
+            .on('get', this.getContactSensorState.bind(this));
+         this.services.push(service);
     } else if (this.accessoryType == "window") {
-        var service = new Service.Window(this.name);
+        var service = new Service.ContactSensor(this.name);
         service
-            .getCharacteristic(Characteristic.CurrentPosition)
-            .on('get', this.getContactPosition.bind(this));
-        service
-            .getCharacteristic(Characteristic.TargetPosition)
-            .on('get', this.getContactPosition.bind(this));
-        service
-            .getCharacteristic(Characteristic.PositionState)
-            .on('get', this.getContactState.bind(this));
+            .getCharacteristic(Characteristic.ContactSensorState)
+            .on('get', this.getContactSensorState.bind(this));
         this.services.push(service);
     }
 }
@@ -253,9 +241,9 @@ EnvisalinkAccessory.prototype.getServices = function () {
 
 EnvisalinkAccessory.prototype.getMotionStatus = function (callback) {
     if (this.status && this.status.send == "open") {
-        callback(null, true);
+        callback(null, Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
     } else {
-        callback(null, false);
+        callback(null, Characteristic.ContactSensorState.CONTACT_DETECTED);
     }
 }
 
@@ -334,14 +322,10 @@ EnvisalinkAccessory.prototype.setAlarmState = function (state, callback) {
     }
 }
 
-EnvisalinkAccessory.prototype.getContactPosition = function (callback) {
+EnvisalinkAccessory.prototype.getContactSensorState = function (callback) {
     if (this.status && this.status.send == "open") {
-        callback(null, 100);
+        callback(null, true);
     } else {
-        callback(null, 0);
+        callback(null, false);
     }
-}
-
-EnvisalinkAccessory.prototype.getContactState = function (callback) {
-    callback(null, Characteristic.PositionState.STOPPED);
 }
