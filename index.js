@@ -241,9 +241,9 @@ EnvisalinkAccessory.prototype.getServices = function () {
 
 EnvisalinkAccessory.prototype.getMotionStatus = function (callback) {
     if (this.status && this.status.send == "open") {
-        callback(null, Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
+        callback(null, true);
     } else {
-        callback(null, Characteristic.ContactSensorState.CONTACT_DETECTED);
+        callback(null, false);
     }
 }
 
@@ -324,8 +324,8 @@ EnvisalinkAccessory.prototype.setAlarmState = function (state, callback) {
 
 EnvisalinkAccessory.prototype.getContactSensorState = function (callback) {
     if (this.status && this.status.send == "open") {
-        callback(null, true);
+        callback(null, Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
     } else {
-        callback(null, false);
+        callback(null, Characteristic.ContactSensorState.CONTACT_DETECTED);
     }
 }
