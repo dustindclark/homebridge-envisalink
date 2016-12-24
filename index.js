@@ -225,7 +225,7 @@ function EnvisalinkAccessory(log, accessoryType, config, partition, zone) {
         service
             .getCharacteristic(Characteristic.ContactSensorState)
             .on('get', this.getContactSensorState.bind(this));
-         this.services.push(service);
+        this.services.push(service);
     } else if (this.accessoryType == "window") {
         var service = new Service.ContactSensor(this.name);
         service
