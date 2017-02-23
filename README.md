@@ -1,6 +1,9 @@
 # homebridge-envisalink
 
-This is a homebridge plugin leverages Node Alarm Proxy (https://www.npmjs.com/package/nodealarmproxy) in order to HomeKit/HomeBridge enable the Envisalink device.  Example configuration is below:
+This is a homebridge plugin leverages Node Alarm Proxy (https://www.npmjs.com/package/nodealarmproxy) in order to HomeKit/HomeBridge enable the Envisalink device.  
+Example configuration is below:
+
+Added support for Leak and Smoke Detectors.
 
 ```javascript
  "platforms": [
@@ -33,13 +36,13 @@ This is a homebridge plugin leverages Node Alarm Proxy (https://www.npmjs.com/pa
           "partition": 1
         },
         {
-          "name": "Upstairs Windows",
-          "type": "window",
+          "name": "Basement Leak",
+          "type": "leak",
           "partition": 1
         },
         {
-          "name": "Back Door",
-          "type": "door",
+          "name": "Upstairs Smoke",
+          "type": "smoke",
           "partition": 1
         },
         {

@@ -61,7 +61,7 @@ function EnvisalinkPlatform(log, config) {
     if (!config.suppressZoneAccessories) {
         for (var i = 0; i < this.zones.length; i++) {
             var zone = this.zones[i];
-            if (zone.type == "motion" || zone.type == "window" || zone.type == "door") {
+            if (zone.type == "motion" || zone.type == "window" || zone.type == "door" || zone.type == "leak" || zone.type == "smoke") {
                 this.platformAccessories.push(new EnvisalinkAccessory(this.log, zone.type, zone, zone.partition, i + 1));
             } else {
                 console.log("Unhandled accessory type: " + zone.type);
@@ -115,7 +115,19 @@ EnvisalinkPlatform.prototype.zoneUpdate = function (data) {
                         accservice.getCharacteristic(Characteristic.ContactSensorState).setValue(resultat);
                     });
 
-                }
+                } else if (accessory.accessoryType == "leak") {
+
+                    accessory.getLeakStatus(function (nothing, resultat) {
+                        accservice.getCharacteristic(Characteristic.LeakDetected).setValue(resultat);
+                    });
+
+                } else if (accessory.accessoryType == "smoke") {
+
+                    accessory.getSmokeStatus(function (nothing, resultat) {
+                        accservice.getCharacteristic(Characteristic.SmokeDetected).setValue(resultat);
+                    });
+
+                }				
             }
 
             //console.log("Set status on accessory " + accessory.name + ' to ' + JSON.stringify(accessory.status));
@@ -232,6 +244,18 @@ function EnvisalinkAccessory(log, accessoryType, config, partition, zone) {
             .getCharacteristic(Characteristic.ContactSensorState)
             .on('get', this.getContactSensorState.bind(this));
         this.services.push(service);
+    } else if (this.accessoryType == "leak") {
+        var service = new Service.LeakSensor(this.name);
+        service
+            .getCharacteristic(Characteristic.LeakDetected)
+            .on('get', this.getLeakStatus.bind(this));
+        this.services.push(service);
+    } else if (this.accessoryType == "smoke") {
+        var service = new Service.SmokeSensor(this.name);
+        service
+            .getCharacteristic(Characteristic.SmokeDetected)
+            .on('get', this.getSmokeStatus.bind(this));
+        this.services.push(service);
     }
 }
 
@@ -327,5 +351,21 @@ EnvisalinkAccessory.prototype.getContactSensorState = function (callback) {
         callback(null, Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
     } else {
         callback(null, Characteristic.ContactSensorState.CONTACT_DETECTED);
+    }
+}
+
+EnvisalinkAccessory.prototype.getLeakStatus = function (callback) {
+    if (this.status && this.status.send == "open") {
+        callback(null, Characteristic.LeakDetected.LEAK_DETECTED);
+    } else {
+        callback(null, Characteristic.LeakDetected.LEAK_NOT_DETECTED);
+    }
+}
+
+EnvisalinkAccessory.prototype.getSmokeStatus = function (callback) {
+    if (this.status && this.status.send == "open") {
+        callback(null, Characteristic.SmokeDetected.SMOKE_DETECTED);
+    } else {
+        callback(null, Characteristic.SmokeDetected.SMOKE_NOT_DETECTED);
     }
 }
