@@ -50,6 +50,13 @@ Added support for Leak and Smoke Detectors.
           "type": "motion",
           "partition": 1
         }
+      ],
+      "userPrograms": [
+        {
+          "name": "Basement Smoke",
+          "type": "smoke",
+          "partition": 1
+        }
       ]
     }
   ]

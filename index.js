@@ -54,7 +54,7 @@ function EnvisalinkPlatform(log, config) {
     this.alarm.on('data', this.systemUpdate.bind(this));
     this.alarm.on('zoneupdate', this.zoneUpdate.bind(this));
     this.alarm.on('partitionupdate', this.partitionUpdate.bind(this));
-    this.alarm.on('partitionuserupdate', this.partitionUserProgramUpdate.bind(this));
+    this.alarm.on('partitionuserupdate', this.partitionUserUpdate.bind(this));
     this.alarm.on('systemupdate', this.systemUpdate.bind(this));
 
     this.platformPartitionAccessories = [];
@@ -95,8 +95,8 @@ function EnvisalinkPlatform(log, config) {
     setTimeout(nextSetTime.bind(this), 5000);
 }
 
-EnvisalinkPlatform.prototype.partitionUserProgramUpdate = function(users) {
-    this.log('Partition User Program Update changed to: ', users, this.status, this.platformProgramAccessories);
+EnvisalinkPlatform.prototype.partitionUserUpdate = function(users) {
+    this.log('Partition User Update changed to: ', users);    
 }
 
 EnvisalinkPlatform.prototype.systemUpdate = function (data) {
@@ -386,25 +386,25 @@ EnvisalinkAccessory.prototype.getSmokeStatus = function (callback) {
     }
 }
 
-EnvisalinkAccessory.prototype.processAlarmState = function(nextEvent) {
+EnvisalinkAccessory.prototype.processAlarmState = function(nextEvent, callback) {
     if (nextEvent.enableSet == true) {
-        if(nextEvent.event !== Characteristic.SecuritySystemCurrentState.DISARMED && this.status && this.status.code === '651') {
+        if(nextEvent.data !== Characteristic.SecuritySystemCurrentState.DISARMED && this.status && this.status.code === '651') {
             var accservice = this.getServices()[0];
             accservice.getCharacteristic(Characteristic.SecuritySystemTargetState).setValue(Characteristic.SecuritySystemCurrentState.DISARMED);
             nextEvent.callback(null, Characteristic.SecuritySystemCurrentState.DISARMED);
             return;
         }
 
-        this.log("Attempting to set alarm state to: " + nextEvent.event);
+        this.log("Attempting to set alarm state to: ", nextEvent.data);
         var command = null;
-        this.lastTargetState = nextEvent.event;
-        if (nextEvent.event == Characteristic.SecuritySystemCurrentState.DISARMED) {
+        this.lastTargetState = nextEvent.data;
+        if (nextEvent.data == Characteristic.SecuritySystemCurrentState.DISARMED) {
             this.log("Disarming alarm with PIN.");
             command = "040" + this.partition + this.pin;
-        } else if (nextEvent.event == Characteristic.SecuritySystemCurrentState.STAY_ARM || nextEvent.event  == Characteristic.SecuritySystemCurrentState.NIGHT_ARM) {
+        } else if (nextEvent.data == Characteristic.SecuritySystemCurrentState.STAY_ARM || nextEvent.data  == Characteristic.SecuritySystemCurrentState.NIGHT_ARM) {
             this.log("Arming alarm to Stay/Night.");
             command = "031" + this.partition;
-        } else if (nextEvent.event == Characteristic.SecuritySystemCurrentState.AWAY_ARM) {
+        } else if (nextEvent.data == Characteristic.SecuritySystemCurrentState.AWAY_ARM) {
             this.log("Arming alarm to Away.");
             command = "030" + this.partition;
         }
@@ -414,29 +414,33 @@ EnvisalinkAccessory.prototype.processAlarmState = function(nextEvent) {
                 if(msg === '024') {
                     if(nextEvent.attempts > 5) {
                         nextEvent.callback(null);
+                        callback();
                         return;
                     }
                     var eventData = {
-                        event: nextEvent.event,
+                        data: nextEvent.data,
                         enableSet: nextEvent.enableSet,
                         attempts: (nextEvent.attempts || 0) + 1
                     };
 
                     self.insertDelayedEvent('alarm', eventData, nextEvent.callback, 1000);
                 } else {
-                    nextEvent.callback(null, nextEvent.event);
+                    nextEvent.callback(null, nextEvent.data);
+                    callback();
                 }
             });
         } else {
-            this.log("Unhandled alarm state: " + nextEvent.event);
+            this.log("Unhandled alarm state: " + nextEvent.data);
             nextEvent.callback(null);
+            callback();
         }
     } else {
         nextEvent.callback(null);
+        callback();
     }
 }
 
-EnvisalinkAccessory.prototype.processTimeChange = function(nextEvent) {
+EnvisalinkAccessory.prototype.processTimeChange = function(nextEvent, callback) {
     var self = this;
     var date = dateFormat(new Date(), "HHMMddmmyy");
     this.log("Setting the current time on the alarm system to: " + date);
@@ -446,64 +450,57 @@ EnvisalinkAccessory.prototype.processTimeChange = function(nextEvent) {
         } else {
             self.log("Time set successfully.");
         }
+        
+        callback();
+        
     }.bind(self));
 }
 
-EnvisalinkAccessory.prototype.insertDelayedEvent = function(type, event, callback, delay) {
+EnvisalinkAccessory.prototype.insertDelayedEvent = function(type, data, callback, delay, pushEndBool) {
     var eventData;
-    if(typeof event === 'object') {
-        eventData = event;
+    if(typeof data === 'object') {
+        eventData = data;
         eventData.type = type;
         eventData.callback = callback;
     } else {
         eventData = {
+        	id: Math.floor((Math.random() * 10000) + 1),
             type: type,
-            event: event,
+            data: data,
             enableSet: enableSet,
             callback: callback
         };
     }
 
-    this.delayedEvents = [eventData].concat(this.delayedEvents || []);
+	if(pushEndBool) {
+		this.delayedEvents = this.delayedEvents || [];
+		this.delayedEvents.push(eventData);
+	} else {
+	    this.delayedEvents = [eventData].concat(this.delayedEvents || []);
+	}
+    
     if(this.delayedEvents.length === 1) {
         setTimeout(this.processDelayedEvents.bind(this), delay || 0);
     }
 }
 
-EnvisalinkAccessory.prototype.addDelayedEvent = function(type, event, callback) {
-    var eventData;
-
-    if(typeof event === 'object') {
-        eventData = event;
-        eventData.type = type;
-        eventData.callback = callback;
-    } else {
-        eventData = {
-            type: type,
-            event: event,
-            enableSet: enableSet,
-            callback: callback
-        };
-    }
-
-    this.delayedEvents = this.delayedEvents || [];
-    this.delayedEvents.push(eventData);
-    if(this.delayedEvents.length === 1) {
-        setTimeout(this.processDelayedEvents.bind(this), 0);
-    }
+EnvisalinkAccessory.prototype.addDelayedEvent = function(type, data, callback, delay) {
+	this.insertDelayedEvent.call(this, type, data, callback, delay, true);
 }
 
 EnvisalinkAccessory.prototype.processDelayedEvents = function() {
     if(this.delayedEvents && this.delayedEvents.length > 0) {
         var nextEvent = this.delayedEvents[0];
         this.delayedEvents = this.delayedEvents.slice(1);
+        var callback = function() {
+			if(this.delayedEvents.length > 0) {
+				setTimeout(this.processDelayedEvents.bind(this), 0);
+			}
+        };
         if(nextEvent.type === 'alarm') {
-            this.processAlarmState(nextEvent);
+            this.processAlarmState(nextEvent, callback.bind(this));
         } else if(nextEvent.type === 'time') {
-            this.processTimeChange(nextEvent);
-        }
-        if(this.delayedEvents.length > 0) {
-            setTimeout(this.processDelayedEvents.bind(this), 0);
+            this.processTimeChange(nextEvent, callback.bind(this));
         }
     }
 }
