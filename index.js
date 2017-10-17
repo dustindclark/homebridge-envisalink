@@ -351,7 +351,8 @@ EnvisalinkAccessory.prototype.getAlarmState = function (callback) {
                     status = Characteristic.SecuritySystemCurrentState.AWAY_ARM;
                 }
 
-            } else if (currentState.send == "exitdelay") { //Use the target alarm state during the exit delay.
+            } else if (currentState.send == "exitdelay" || currentState.send == "entrydelay") {
+                //Use the target alarm state during the exit and entrance delays.
                 status = this.lastTargetState;
             }
         }
