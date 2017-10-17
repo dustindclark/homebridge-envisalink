@@ -64,13 +64,14 @@ function EnvisalinkPlatform(log, config) {
         var accessory = new EnvisalinkAccessory(this.log, "partition", partition, i + 1);
         this.platformPartitionAccessories.push(accessory);
     }
-    this.platformZoneAccessories = [];
+    this.platformZoneAccessories = {};
     if (!config.suppressZoneAccessories) {
         for (var i = 0; i < this.zones.length; i++) {
             var zone = this.zones[i];
             if (zone.type == "motion" || zone.type == "window" || zone.type == "door" || zone.type == "leak" || zone.type == "smoke") {
-                var accessory = new EnvisalinkAccessory(this.log, zone.type, zone, zone.partition, i + 1);
-                this.platformZoneAccessories.push(accessory);
+                var zoneNum = zone.zoneNumber ? zone.zoneNumber : (i + 1);                
+                var accessory = new EnvisalinkAccessory(this.log, zone.type, zone, zone.partition, zoneNum);
+                this.platformZoneAccessories['z.' + zoneNum] = accessory;
             } else {
                 this.log("Unhandled accessory type: " + zone.type);
             }
@@ -149,7 +150,7 @@ EnvisalinkPlatform.prototype.systemUpdate = function (data) {
 }
 
 EnvisalinkPlatform.prototype.zoneUpdate = function (data) {
-    var accessory = this.platformZoneAccessories[parseInt(data.zone) - 1];
+    var accessory = this.platformZoneAccessories['z.' + data.zone];
     if(accessory) {
         accessory.status = elink.tpicommands[data.code];
         accessory.status.code = data.code;
@@ -244,7 +245,7 @@ EnvisalinkPlatform.prototype.partitionUpdate = function (data) {
 }
 
 EnvisalinkPlatform.prototype.accessories = function (callback) {
-    callback(this.platformPartitionAccessories.concat(this.platformZoneAccessories).concat(this.platformProgramAccessories));
+    callback(this.platformPartitionAccessories.concat(Object.values(this.platformZoneAccessories)).concat(this.platformProgramAccessories));
 }
 
 function EnvisalinkAccessory(log, accessoryType, config, partition, zone) {
