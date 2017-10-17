@@ -65,11 +65,15 @@ function EnvisalinkPlatform(log, config) {
         this.platformPartitionAccessories.push(accessory);
     }
     this.platformZoneAccessories = {};
+    var maxZone = 0;
     if (!config.suppressZoneAccessories) {
         for (var i = 0; i < this.zones.length; i++) {
             var zone = this.zones[i];
             if (zone.type == "motion" || zone.type == "window" || zone.type == "door" || zone.type == "leak" || zone.type == "smoke") {
-                var zoneNum = zone.zoneNumber ? zone.zoneNumber : (i + 1);                
+                var zoneNum = zone.zoneNumber ? zone.zoneNumber : (i + 1);
+                if (zoneNum > maxZone) {
+                    maxZone = zoneNum;
+                }
                 var accessory = new EnvisalinkAccessory(this.log, zone.type, zone, zone.partition, zoneNum);
                 this.platformZoneAccessories['z.' + zoneNum] = accessory;
             } else {
@@ -81,7 +85,7 @@ function EnvisalinkPlatform(log, config) {
     for(var i = 0; i < this.userPrograms.length; i++) {
         var program = this.userPrograms[i];
         if(program.type === "smoke") {
-            var accessory = new EnvisalinkAccessory(this.log, program.type, program, program.partition, this.zones.length + i + 1);
+            var accessory = new EnvisalinkAccessory(this.log, program.type, program, program.partition, maxZone + i + 1);
             this.platformProgramAccessories.push(accessory);
         } else {
             this.log("Unhandled accessory type: " + program.type);
