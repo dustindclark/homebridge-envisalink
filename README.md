@@ -50,9 +50,45 @@ Added support for Leak and Smoke Detectors.
           "type": "motion",
           "partition": 1
         }
+      ],
+      "userPrograms": [
+        {
+          "name": "Basement Smoke",
+          "type": "smoke",
+          "partition": 1
+        }
       ]
     }
   ]
+```
+
+## Non-Consecutive Zones
+If your system has unused zones, simply include a *zoneNumber* integer property on ***each*** zone you have in the config. Make sure you put the property on each zone.
+
+Ex:
+```javascript
+...
+"zones": [
+  {
+    "name": "Front Entry",
+    "type": "door",
+    "partition": 1,
+    "zoneNumber": 1
+  },
+  {
+    "name": "Patio Door",
+    "type": "door",
+    "partition": 1,
+    "zoneNumber": 2
+  },
+  {
+    "name": "Garage Door",
+    "type": "door",
+    "partition": 1,
+    "zoneNumber": 5
+  }
+]
+...
 ```
 
 Only DSC panels have been tested thus far.  If you'd like to provide a Honeywell device for testing, I'd be glad to add support for this device and ship it back to you.

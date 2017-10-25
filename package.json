@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "net": ">=1.0",
-    "nodealarmproxy": "1.0.0",
+    "nodealarmproxy": "git://github.com/mattvj/NodeAlarmProxy.git",
     "dateformat": ">=1.0.12"
   },
   "homepage": "https://github.com/dustindclark/homebridge-envisalink#readme"
