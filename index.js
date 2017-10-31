@@ -92,12 +92,14 @@ function EnvisalinkPlatform(log, config) {
         }
     }
 
-    var nextSetTime = function() {
-        this.platformPartitionAccessories[0].addDelayedEvent('time');
-        setTimeout(nextSetTime.bind(this), 60 * 60 * 1000);
+    if (!config.suppressClockReset) {
+        var nextSetTime = function() {
+            this.platformPartitionAccessories[0].addDelayedEvent('time');
+            setTimeout(nextSetTime.bind(this), 60 * 60 * 1000);
+        }
+    
+        setTimeout(nextSetTime.bind(this), 5000);
     }
-
-    setTimeout(nextSetTime.bind(this), 5000);
 }
 
 EnvisalinkPlatform.prototype.partitionUserUpdate = function(users) {
@@ -448,7 +450,7 @@ EnvisalinkAccessory.prototype.processAlarmState = function(nextEvent, callback) 
 
 EnvisalinkAccessory.prototype.processTimeChange = function(nextEvent, callback) {
     var self = this;
-    var date = dateFormat(new Date(), "HHMMddmmyy");
+    var date = dateFormat(new Date(), "HHMMmmddyy");
     this.log("Setting the current time on the alarm system to: " + date);
     nap.manualCommand("010" + date, function (data) {
         if(data) {
