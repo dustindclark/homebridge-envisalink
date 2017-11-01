@@ -82,9 +82,9 @@ function EnvisalinkPlatform(log, config) {
         }
     }
     this.platformProgramAccessories = [];
-    for(var i = 0; i < this.userPrograms.length; i++) {
+    for (var i = 0; i < this.userPrograms.length; i++) {
         var program = this.userPrograms[i];
-        if(program.type === "smoke") {
+        if (program.type === "smoke") {
             var accessory = new EnvisalinkAccessory(this.log, program.type, program, program.partition, maxZone + i + 1);
             this.platformProgramAccessories.push(accessory);
         } else {
@@ -102,38 +102,38 @@ function EnvisalinkPlatform(log, config) {
     }
 }
 
-EnvisalinkPlatform.prototype.partitionUserUpdate = function(users) {
-    this.log('Partition User Update changed to: ', users);    
+EnvisalinkPlatform.prototype.partitionUserUpdate = function (users) {
+    this.log('Partition User Update changed to: ', users);
 }
 
 EnvisalinkPlatform.prototype.systemUpdate = function (data) {
     this.log('System status changed to: ', data);
 
     var systemStatus = data.system;
-    if(!systemStatus) {
+    if (!systemStatus) {
         systemStatus = data;
     }
 
-    if(systemStatus) {
-        for(var i = 0; i < this.platformProgramAccessories.length; i++) {
+    if (systemStatus) {
+        for (var i = 0; i < this.platformProgramAccessories.length; i++) {
             var programAccessory = this.platformProgramAccessories[i];
             var accservice = (programAccessory.getServices())[0];
-            if(accservice) {
+            if (accservice) {
                 var code = systemStatus.code && systemStatus.code.substring(0, 3);
-                if(programAccessory.accessoryType === 'smoke' && code === '631') {
+                if (programAccessory.accessoryType === 'smoke' && code === '631') {
                     accservice.getCharacteristic(Characteristic.SmokeDetected).setValue(Characteristic.SmokeDetected.SMOKE_DETECTED);
 
                     var partition = this.platformPartitionAccessories[parseInt(programAccessory.partition) - 1];
                     var partitionService = partition && (partition.getServices())[0];
-                    partitionService && partitionService.getCharacteristic(Characteristic.SecuritySystemTargetState).getValue(function(context, value) {
+                    partitionService && partitionService.getCharacteristic(Characteristic.SecuritySystemTargetState).getValue(function (context, value) {
                         partitionService.getCharacteristic(Characteristic.SecuritySystemTargetState).setValue(Characteristic.SecuritySystemTargetState.STAY_ARM);
                         partition.currentState = value;
                     });
-                } else if(programAccessory.accessoryType === 'smoke' && code === '632') {
+                } else if (programAccessory.accessoryType === 'smoke' && code === '632') {
                     accservice.getCharacteristic(Characteristic.SmokeDetected).setValue(Characteristic.SmokeDetected.SMOKE_NOT_DETECTED);
                     var partition = this.platformPartitionAccessories[parseInt(programAccessory.partition) - 1];
                     var partitionService = partition && (partition.getServices())[0];
-                    if(partition && partition.currentState !== undefined) {
+                    if (partition && partition.currentState !== undefined) {
                         partitionService && partitionService.getCharacteristic(Characteristic.SecuritySystemTargetState).setValue(partition.currentState);
                         delete partition.currentState;
                     }
@@ -141,11 +141,11 @@ EnvisalinkPlatform.prototype.systemUpdate = function (data) {
             }
         }
     }
-    if(data.partition) {
-        for(var i = 0; i < this.platformPartitionAccessories.length; i++) {
+    if (data.partition) {
+        for (var i = 0; i < this.platformPartitionAccessories.length; i++) {
             var partitionAccessory = this.platformPartitionAccessories[i];
             var systemStatus = data.partition['' + (i + 1)];
-            if(systemStatus) {
+            if (systemStatus) {
                 var code = systemStatus.code.substring(0, 3);
                 partitionAccessory.systemStatus = elink.tpicommands[code];
                 partitionAccessory.systemStatus.code = code;
@@ -157,7 +157,7 @@ EnvisalinkPlatform.prototype.systemUpdate = function (data) {
 
 EnvisalinkPlatform.prototype.zoneUpdate = function (data) {
     var accessory = this.platformZoneAccessories['z.' + data.zone];
-    if(accessory) {
+    if (accessory) {
         accessory.status = elink.tpicommands[data.code];
         accessory.status.code = data.code;
         accessory.status.mode = data.mode;
@@ -207,7 +207,7 @@ EnvisalinkPlatform.prototype.partitionUpdate = function (data) {
     }
 
     var partition = this.platformPartitionAccessories[data.partition - 1];
-    if(partition) {
+    if (partition) {
         partition.status = elink.tpicommands[data.code];
         partition.status.code = data.code;
         partition.status.mode = data.mode;
@@ -230,7 +230,7 @@ EnvisalinkPlatform.prototype.partitionUpdate = function (data) {
             } else if (data.code == "652" || data.code == "654" || data.code == "655") { //Armed, Alarm, Disarmed
                 partition.getAlarmState(function (nothing, resultat) {
 
-                    if(partition.currentState !== undefined) {
+                    if (partition.currentState !== undefined) {
                         delete partition.currentState;
                     }
 
@@ -330,40 +330,40 @@ EnvisalinkAccessory.prototype.getMotionStatus = function (callback) {
 }
 
 EnvisalinkAccessory.prototype.getReadyState = function (callback) {
-        var currentState = this.status;
-        var status = true;
-        if (currentState && currentState.bytes === this.partition) {
-            if (currentState.send == "ready" || currentState.send == "readyforce") {
-                status = false;
-            }
+    var currentState = this.status;
+    var status = true;
+    if (currentState && currentState.bytes === this.partition) {
+        if (currentState.send == "ready" || currentState.send == "readyforce") {
+            status = false;
         }
-        callback(null, status);
+    }
+    callback(null, status);
 }
 EnvisalinkAccessory.prototype.getAlarmState = function (callback) {
-        var currentState = this.status;
-        var status = Characteristic.SecuritySystemCurrentState.DISARMED;
+    var currentState = this.status;
+    var status = Characteristic.SecuritySystemCurrentState.DISARMED;
 
-        if (currentState && currentState.bytes === this.partition) {
-            //Default to disarmed
+    if (currentState && currentState.bytes === this.partition) {
+        //Default to disarmed
 
-            if (currentState.send == "alarm") {
-                status = Characteristic.SecuritySystemCurrentState.ALARM_TRIGGERED;
-            } else if (currentState.send == "armed") {
+        if (currentState.send == "alarm") {
+            status = Characteristic.SecuritySystemCurrentState.ALARM_TRIGGERED;
+        } else if (currentState.send == "armed") {
 
-                //0: AWAY, 1: STAY, 2:  ZERO-ENTRY-AWAY, 3:  ZERO-ENTRY-STAY
+            //0: AWAY, 1: STAY, 2:  ZERO-ENTRY-AWAY, 3:  ZERO-ENTRY-STAY
 
-                if (currentState.mode === '1'  || currentState.mode === '3') {
-                    status = Characteristic.SecuritySystemCurrentState.STAY_ARM;
-                } else {
-                    status = Characteristic.SecuritySystemCurrentState.AWAY_ARM;
-                }
-
-            } else if (currentState.send == "exitdelay" || currentState.send == "entrydelay") {
-                //Use the target alarm state during the exit and entrance delays.
-                status = this.lastTargetState;
+            if (currentState.mode === '1' || currentState.mode === '3') {
+                status = Characteristic.SecuritySystemCurrentState.STAY_ARM;
+            } else {
+                status = Characteristic.SecuritySystemCurrentState.AWAY_ARM;
             }
+
+        } else if (currentState.send == "exitdelay" || currentState.send == "entrydelay") {
+            //Use the target alarm state during the exit and entrance delays.
+            status = this.lastTargetState;
         }
-        callback(null, status);
+    }
+    callback(null, status);
 }
 
 EnvisalinkAccessory.prototype.setAlarmState = function (state, callback) {
@@ -394,9 +394,9 @@ EnvisalinkAccessory.prototype.getSmokeStatus = function (callback) {
     }
 }
 
-EnvisalinkAccessory.prototype.processAlarmState = function(nextEvent, callback) {
+EnvisalinkAccessory.prototype.processAlarmState = function (nextEvent, callback) {
     if (nextEvent.enableSet == true) {
-        if(nextEvent.data !== Characteristic.SecuritySystemCurrentState.DISARMED && this.status && this.status.code === '651') {
+        if (nextEvent.data !== Characteristic.SecuritySystemCurrentState.DISARMED && this.status && this.status.code === '651') {
             var accservice = this.getServices()[0];
             accservice.getCharacteristic(Characteristic.SecuritySystemTargetState).setValue(Characteristic.SecuritySystemCurrentState.DISARMED);
             nextEvent.callback(null, Characteristic.SecuritySystemCurrentState.DISARMED);
@@ -409,7 +409,7 @@ EnvisalinkAccessory.prototype.processAlarmState = function(nextEvent, callback) 
         if (nextEvent.data == Characteristic.SecuritySystemCurrentState.DISARMED) {
             this.log("Disarming alarm with PIN.");
             command = "040" + this.partition + this.pin;
-        } else if (nextEvent.data == Characteristic.SecuritySystemCurrentState.STAY_ARM || nextEvent.data  == Characteristic.SecuritySystemCurrentState.NIGHT_ARM) {
+        } else if (nextEvent.data == Characteristic.SecuritySystemCurrentState.STAY_ARM || nextEvent.data == Characteristic.SecuritySystemCurrentState.NIGHT_ARM) {
             this.log("Arming alarm to Stay/Night.");
             command = "031" + this.partition;
         } else if (nextEvent.data == Characteristic.SecuritySystemCurrentState.AWAY_ARM) {
@@ -419,8 +419,8 @@ EnvisalinkAccessory.prototype.processAlarmState = function(nextEvent, callback) 
         if (command) {
             var self = this;
             nap.manualCommand(command, function (msg) {
-                if(msg === '024') {
-                    if(nextEvent.attempts > 5) {
+                if (msg === '024') {
+                    if (nextEvent.attempts > 5) {
                         nextEvent.callback(null);
                         callback();
                         return;
@@ -448,31 +448,31 @@ EnvisalinkAccessory.prototype.processAlarmState = function(nextEvent, callback) 
     }
 }
 
-EnvisalinkAccessory.prototype.processTimeChange = function(nextEvent, callback) {
+EnvisalinkAccessory.prototype.processTimeChange = function (nextEvent, callback) {
     var self = this;
     var date = dateFormat(new Date(), "HHMMmmddyy");
     this.log("Setting the current time on the alarm system to: " + date);
     nap.manualCommand("010" + date, function (data) {
-        if(data) {
+        if (data) {
             self.log("Time not set successfully.");
         } else {
             self.log("Time set successfully.");
         }
-        
+
         callback();
-        
+
     }.bind(self));
 }
 
-EnvisalinkAccessory.prototype.insertDelayedEvent = function(type, data, callback, delay, pushEndBool) {
+EnvisalinkAccessory.prototype.insertDelayedEvent = function (type, data, callback, delay, pushEndBool) {
     var eventData;
-    if(typeof data === 'object') {
+    if (typeof data === 'object') {
         eventData = data;
         eventData.type = type;
         eventData.callback = callback;
     } else {
         eventData = {
-        	id: Math.floor((Math.random() * 10000) + 1),
+            id: Math.floor((Math.random() * 10000) + 1),
             type: type,
             data: data,
             enableSet: enableSet,
@@ -480,34 +480,34 @@ EnvisalinkAccessory.prototype.insertDelayedEvent = function(type, data, callback
         };
     }
 
-	if(pushEndBool) {
-		this.delayedEvents = this.delayedEvents || [];
-		this.delayedEvents.push(eventData);
-	} else {
-	    this.delayedEvents = [eventData].concat(this.delayedEvents || []);
-	}
-    
-    if(this.delayedEvents.length === 1) {
+    if (pushEndBool) {
+        this.delayedEvents = this.delayedEvents || [];
+        this.delayedEvents.push(eventData);
+    } else {
+        this.delayedEvents = [eventData].concat(this.delayedEvents || []);
+    }
+
+    if (this.delayedEvents.length === 1) {
         setTimeout(this.processDelayedEvents.bind(this), delay || 0);
     }
 }
 
-EnvisalinkAccessory.prototype.addDelayedEvent = function(type, data, callback, delay) {
-	this.insertDelayedEvent.call(this, type, data, callback, delay, true);
+EnvisalinkAccessory.prototype.addDelayedEvent = function (type, data, callback, delay) {
+    this.insertDelayedEvent.call(this, type, data, callback, delay, true);
 }
 
-EnvisalinkAccessory.prototype.processDelayedEvents = function() {
-    if(this.delayedEvents && this.delayedEvents.length > 0) {
+EnvisalinkAccessory.prototype.processDelayedEvents = function () {
+    if (this.delayedEvents && this.delayedEvents.length > 0) {
         var nextEvent = this.delayedEvents[0];
         this.delayedEvents = this.delayedEvents.slice(1);
-        var callback = function() {
-			if(this.delayedEvents.length > 0) {
-				setTimeout(this.processDelayedEvents.bind(this), 0);
-			}
+        var callback = function () {
+            if (this.delayedEvents.length > 0) {
+                setTimeout(this.processDelayedEvents.bind(this), 0);
+            }
         };
-        if(nextEvent.type === 'alarm') {
+        if (nextEvent.type === 'alarm') {
             this.processAlarmState(nextEvent, callback.bind(this));
-        } else if(nextEvent.type === 'time') {
+        } else if (nextEvent.type === 'time') {
             this.processTimeChange(nextEvent, callback.bind(this));
         }
     }
