@@ -64,7 +64,8 @@ function EnvisalinkPlatform(log, config) {
         var accessory = new EnvisalinkAccessory(this.log, "partition", partition, i + 1);
         this.platformPartitionAccessories.push(accessory);
     }
-    this.platformZoneAccessories = {};
+    this.platformZoneAccessories = [];
+    this.platformZoneAccessoryMap = {};
     var maxZone = 0;
     if (!config.suppressZoneAccessories) {
         for (var i = 0; i < this.zones.length; i++) {
@@ -75,7 +76,8 @@ function EnvisalinkPlatform(log, config) {
                     maxZone = zoneNum;
                 }
                 var accessory = new EnvisalinkAccessory(this.log, zone.type, zone, zone.partition, zoneNum);
-                this.platformZoneAccessories['z.' + zoneNum] = accessory;
+                var accessoryIndex = this.platformZoneAccessories.push(accessory) - 1;
+                this.platformZoneAccessoryMap['z.' + zoneNum] = accessoryIndex;
             } else {
                 this.log("Unhandled accessory type: " + zone.type);
             }
@@ -92,12 +94,14 @@ function EnvisalinkPlatform(log, config) {
         }
     }
 
-    var nextSetTime = function () {
-        this.platformPartitionAccessories[0].addDelayedEvent('time');
-        setTimeout(nextSetTime.bind(this), 60 * 60 * 1000);
+    if (!config.suppressClockReset) {
+        var nextSetTime = function() {
+            this.platformPartitionAccessories[0].addDelayedEvent('time');
+            setTimeout(nextSetTime.bind(this), 60 * 60 * 1000);
+        }
+    
+        setTimeout(nextSetTime.bind(this), 5000);
     }
-
-    setTimeout(nextSetTime.bind(this), 5000);
 }
 
 EnvisalinkPlatform.prototype.partitionUserUpdate = function (users) {
@@ -154,40 +158,43 @@ EnvisalinkPlatform.prototype.systemUpdate = function (data) {
 }
 
 EnvisalinkPlatform.prototype.zoneUpdate = function (data) {
-    var accessory = this.platformZoneAccessories['z.' + data.zone];
-    if (accessory) {
-        accessory.status = elink.tpicommands[data.code];
-        accessory.status.code = data.code;
-        accessory.status.mode = data.mode;
-        console.log("Set status on accessory " + accessory.name + ' to ' + JSON.stringify(accessory.status));
+    var accessoryIndex = this.platformZoneAccessoryMap['z.' + data.zone];
+    if (accessoryIndex !== undefined) {
+        var accessory = this.platformZoneAccessories[accessoryIndex];
+        if (accessory) {
+            accessory.status = elink.tpicommands[data.code];
+            accessory.status.code = data.code;
+            accessory.status.mode = data.mode;
+            console.log("Set status on accessory " + accessory.name + ' to ' + JSON.stringify(accessory.status));
 
-        var accservice = (accessory.getServices())[0];
+            var accservice = (accessory.getServices())[0];
 
-        if (accservice) {
-            if (accessory.accessoryType == "motion") {
+            if (accservice) {
+                if (accessory.accessoryType == "motion") {
 
-                accessory.getMotionStatus(function (nothing, resultat) {
-                    accservice.getCharacteristic(Characteristic.MotionDetected).setValue(resultat);
-                });
+                    accessory.getMotionStatus(function (nothing, resultat) {
+                        accservice.getCharacteristic(Characteristic.MotionDetected).setValue(resultat);
+                    });
 
-            } else if (accessory.accessoryType == "door" || accessory.accessoryType == "window") {
+                } else if (accessory.accessoryType == "door" || accessory.accessoryType == "window") {
 
-                accessory.getContactSensorState(function (nothing, resultat) {
-                    accservice.getCharacteristic(Characteristic.ContactSensorState).setValue(resultat);
-                });
+                    accessory.getContactSensorState(function (nothing, resultat) {
+                        accservice.getCharacteristic(Characteristic.ContactSensorState).setValue(resultat);
+                    });
 
-            } else if (accessory.accessoryType == "leak") {
+                } else if (accessory.accessoryType == "leak") {
 
-                accessory.getLeakStatus(function (nothing, resultat) {
-                    accservice.getCharacteristic(Characteristic.LeakDetected).setValue(resultat);
-                });
+                    accessory.getLeakStatus(function (nothing, resultat) {
+                        accservice.getCharacteristic(Characteristic.LeakDetected).setValue(resultat);
+                    });
 
-            } else if (accessory.accessoryType == "smoke") {
+                } else if (accessory.accessoryType == "smoke") {
 
-                accessory.getSmokeStatus(function (nothing, resultat) {
-                    accservice.getCharacteristic(Characteristic.SmokeDetected).setValue(resultat);
-                });
+                    accessory.getSmokeStatus(function (nothing, resultat) {
+                        accservice.getCharacteristic(Characteristic.SmokeDetected).setValue(resultat);
+                    });
 
+                }
             }
         }
     }
@@ -249,7 +256,7 @@ EnvisalinkPlatform.prototype.partitionUpdate = function (data) {
 }
 
 EnvisalinkPlatform.prototype.accessories = function (callback) {
-    callback(this.platformPartitionAccessories.concat(Object.values(this.platformZoneAccessories)).concat(this.platformProgramAccessories));
+    callback(this.platformPartitionAccessories.concat(this.platformZoneAccessories).concat(this.platformProgramAccessories));
 }
 
 function EnvisalinkAccessory(log, accessoryType, config, partition, zone) {
@@ -448,7 +455,7 @@ EnvisalinkAccessory.prototype.processAlarmState = function (nextEvent, callback)
 
 EnvisalinkAccessory.prototype.processTimeChange = function (nextEvent, callback) {
     var self = this;
-    var date = dateFormat(new Date(), "HHMMddmmyy");
+    var date = dateFormat(new Date(), "HHMMmmddyy");
     this.log("Setting the current time on the alarm system to: " + date);
     nap.manualCommand("010" + date, function (data) {
         if (data) {

@@ -14,6 +14,7 @@ Added support for Leak and Smoke Detectors.
       "password": "---envisalink password (default is user)---",
       "pin": "---panel pin for disarming---",
       "suppressZoneAccessories": false,
+      "suppressClockReset": false,
       "partitions": [
         {
           "name": "Alarm"
@@ -61,6 +62,9 @@ Added support for Leak and Smoke Detectors.
     }
   ]
 ```
+
+## Disabling Clock Reset
+This plugin will update the date/time of your alarm system hourly unless you set "suppressClockReset" to true in the config.
 
 ## Non-Consecutive Zones
 If your system has unused zones, simply include a *zoneNumber* integer property on ***each*** zone you have in the config. Make sure you put the property on each zone.
