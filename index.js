@@ -102,11 +102,11 @@ function EnvisalinkPlatform(log, config) {
     this.alarm.on('systemupdate', this.systemUpdate.bind(this));
 
     if (!config.suppressClockReset) {
-        var nextSetTime = function() {
+        var nextSetTime = function () {
             this.platformPartitionAccessories[0].addDelayedEvent('time');
             setTimeout(nextSetTime.bind(this), 60 * 60 * 1000);
         }
-    
+
         setTimeout(nextSetTime.bind(this), 5000);
     }
 }
