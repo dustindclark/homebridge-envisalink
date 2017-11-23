@@ -29,8 +29,8 @@ function EnvisalinkPlatform(log, config) {
     this.pin = config.pin;
     this.password = config.password;
     this.partitions = config.partitions;
-    this.zones = config.zones;
-    this.userPrograms = config.userPrograms;
+    this.zones = config.zones ? config.zones : [];
+    this.userPrograms = config.userPrograms ? config.userPrograms : [];
 
     this.log("Configuring Envisalink platform,  Host: " + config.host + ", port: " + config.port + ", type: " + this.deviceType);
     this.log("Starting node alarm proxy...");
@@ -41,8 +41,8 @@ function EnvisalinkPlatform(log, config) {
         actualport: config.port,
         serverhost: '0.0.0.0',
         serverport: config.serverport ? config.serverport : 4026,
-        zone: this.zones && this.zones.length > 0 ? this.zones.length : null,
-        userPrograms: this.userPrograms && this.userPrograms.length > 0 ? this.userPrograms.length : null,
+        zone: this.zones.length > 0 ? this.zones.length : null,
+        userPrograms: this.userPrograms.length > 0 ? this.userPrograms.length : null,
         partition: this.partitions ? this.partitions.length : 1,
         proxyenable: true,
         atomicEvents: true
@@ -158,6 +158,9 @@ EnvisalinkPlatform.prototype.systemUpdate = function (data) {
 }
 
 EnvisalinkPlatform.prototype.zoneUpdate = function (data) {
+    this.log('ZONE!');
+    this.log(typeof data.zone);
+    this.log(data.zone);
     var accessoryIndex = this.platformZoneAccessoryMap['z.' + data.zone];
     if (accessoryIndex !== undefined) {
         var accessory = this.platformZoneAccessories[accessoryIndex];
