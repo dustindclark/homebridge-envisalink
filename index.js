@@ -165,9 +165,6 @@ EnvisalinkPlatform.prototype.systemUpdate = function (data) {
 }
 
 EnvisalinkPlatform.prototype.zoneUpdate = function (data) {
-    this.log('ZONE!');
-    this.log(typeof data.zone);
-    this.log(data.zone);
     var accessoryIndex = this.platformZoneAccessoryMap['z.' + data.zone];
     if (accessoryIndex !== undefined) {
         var accessory = this.platformZoneAccessories[accessoryIndex];
