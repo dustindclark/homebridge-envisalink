@@ -29,33 +29,10 @@ function EnvisalinkPlatform(log, config) {
     this.pin = config.pin;
     this.password = config.password;
     this.partitions = config.partitions;
-    this.zones = config.zones;
-    this.userPrograms = config.userPrograms;
+    this.zones = config.zones ? config.zones : [];
+    this.userPrograms = config.userPrograms ? config.userPrograms : [];
 
     this.log("Configuring Envisalink platform,  Host: " + config.host + ", port: " + config.port + ", type: " + this.deviceType);
-    this.log("Starting node alarm proxy...");
-    this.alarmConfig = {
-        password: config.password,
-        serverpassword: config.password,
-        actualhost: config.host,
-        actualport: config.port,
-        serverhost: '0.0.0.0',
-        serverport: config.serverport ? config.serverport : 4026,
-        zone: this.zones && this.zones.length > 0 ? this.zones.length : null,
-        userPrograms: this.userPrograms && this.userPrograms.length > 0 ? this.userPrograms.length : null,
-        partition: this.partitions ? this.partitions.length : 1,
-        proxyenable: true,
-        atomicEvents: true
-    };
-    this.log("Zones: " + this.alarmConfig.zone);
-    this.log("User Programs: " + this.alarmConfig.userPrograms);
-    this.alarm = nap.initConfig(this.alarmConfig);
-    this.log("Node alarm proxy started.  Listening for connections at: " + this.alarmConfig.serverhost + ":" + this.alarmConfig.serverport);
-    this.alarm.on('data', this.systemUpdate.bind(this));
-    this.alarm.on('zoneupdate', this.zoneUpdate.bind(this));
-    this.alarm.on('partitionupdate', this.partitionUpdate.bind(this));
-    this.alarm.on('partitionuserupdate', this.partitionUserUpdate.bind(this));
-    this.alarm.on('systemupdate', this.systemUpdate.bind(this));
 
     this.platformPartitionAccessories = [];
     for (var i = 0; i < this.partitions.length; i++) {
@@ -66,7 +43,13 @@ function EnvisalinkPlatform(log, config) {
     }
     this.platformZoneAccessories = [];
     this.platformZoneAccessoryMap = {};
-    var maxZone = 0;
+
+    /*
+    * maxZone variable is very important for two reasons
+    * (1) Prevents UUID collisions when userPrograms are initialized
+    * (2) This variable tells Node Alarm Proxy the maximum zone number to monitor
+    */
+    var maxZone = this.zones.length;
     if (!config.suppressZoneAccessories) {
         for (var i = 0; i < this.zones.length; i++) {
             var zone = this.zones[i];
@@ -93,6 +76,30 @@ function EnvisalinkPlatform(log, config) {
             this.log("Unhandled accessory type: " + program.type);
         }
     }
+
+    this.log("Starting node alarm proxy...");
+    this.alarmConfig = {
+        password: config.password,
+        serverpassword: config.password,
+        actualhost: config.host,
+        actualport: config.port,
+        serverhost: '0.0.0.0',
+        serverport: config.serverport ? config.serverport : 4026,
+        zone: maxZone > 0 ? maxZone : null,
+        userPrograms: this.userPrograms.length > 0 ? this.userPrograms.length : null,
+        partition: this.partitions ? this.partitions.length : 1,
+        proxyenable: true,
+        atomicEvents: true
+    };
+    this.log("Zones: " + this.alarmConfig.zone);
+    this.log("User Programs: " + this.alarmConfig.userPrograms);
+    this.alarm = nap.initConfig(this.alarmConfig);
+    this.log("Node alarm proxy started.  Listening for connections at: " + this.alarmConfig.serverhost + ":" + this.alarmConfig.serverport);
+    this.alarm.on('data', this.systemUpdate.bind(this));
+    this.alarm.on('zoneupdate', this.zoneUpdate.bind(this));
+    this.alarm.on('partitionupdate', this.partitionUpdate.bind(this));
+    this.alarm.on('partitionuserupdate', this.partitionUserUpdate.bind(this));
+    this.alarm.on('systemupdate', this.systemUpdate.bind(this));
 
     if (!config.suppressClockReset) {
         var nextSetTime = function () {
