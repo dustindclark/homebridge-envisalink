@@ -1,6 +1,6 @@
 {
   "name": "homebridge-envisalink",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "A homebridge plugin for the EnvisaLink alarm module",
   "main": "index.js",
   "scripts": {
@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "net": ">=1.0",
-    "nodealarmproxy": "git://github.com/mattvj/NodeAlarmProxy.git",
+    "nodealarmproxy": "1.0.1",
     "dateformat": ">=1.0.12"
   },
   "homepage": "https://github.com/dustindclark/homebridge-envisalink#readme"
