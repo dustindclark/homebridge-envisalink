@@ -344,7 +344,7 @@ EnvisalinkAccessory.prototype.getMotionStatus = function (callback) {
 EnvisalinkAccessory.prototype.getReadyState = function (callback) {
     var currentState = this.status;
     var status = true;
-    if (currentState && currentState.bytes === this.partition) {
+    if (currentState && currentState.partition === this.partition) {
         if (currentState.send == "ready" || currentState.send == "readyforce") {
             status = false;
         }
@@ -355,7 +355,7 @@ EnvisalinkAccessory.prototype.getAlarmState = function (callback) {
     var currentState = this.status;
     var status = Characteristic.SecuritySystemCurrentState.DISARMED;
 
-    if (currentState && currentState.bytes === this.partition) {
+    if (currentState && currentState.partition === this.partition) {
         //Default to disarmed
 
         if (currentState.send == "alarm") {
