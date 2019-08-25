@@ -344,7 +344,7 @@ EnvisalinkAccessory.prototype.getMotionStatus = function (callback) {
 EnvisalinkAccessory.prototype.getReadyState = function (callback) {
     var currentState = this.status;
     var status = true;
-    if (currentState && currentState.bytes === this.partition) {
+    if (currentState && currentState.partition === this.partition) {
         if (currentState.send == "ready" || currentState.send == "readyforce") {
             status = false;
         }
@@ -355,7 +355,7 @@ EnvisalinkAccessory.prototype.getAlarmState = function (callback) {
     var currentState = this.status;
     var status = Characteristic.SecuritySystemCurrentState.DISARMED;
 
-    if (currentState && currentState.bytes === this.partition) {
+    if (currentState && currentState.partition === this.partition) {
         //Default to disarmed
 
         if (currentState.send == "alarm") {
@@ -445,9 +445,14 @@ EnvisalinkAccessory.prototype.processAlarmState = function (nextEvent, callback)
 
                     self.insertDelayedEvent('alarm', eventData, nextEvent.callback, 1000);
                 } else {
-                    nextEvent.callback(null, nextEvent.data);
-                    callback();
-                }
+                    try {
+			nextEvent.callback(null, nextEvent.data);
+                    	callback();
+		    }
+		    catch(err) {
+			console.log("Error in nextEvent.callback. "+err);
+                    }
+		}
             });
         } else {
             this.log("Unhandled alarm state: " + nextEvent.data);
