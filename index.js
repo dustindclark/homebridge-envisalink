@@ -445,9 +445,14 @@ EnvisalinkAccessory.prototype.processAlarmState = function (nextEvent, callback)
 
                     self.insertDelayedEvent('alarm', eventData, nextEvent.callback, 1000);
                 } else {
-                    nextEvent.callback(null, nextEvent.data);
-                    callback();
-                }
+                    try {
+			nextEvent.callback(null, nextEvent.data);
+                    	callback();
+		    }
+		    catch(err) {
+			console.log("Error in nextEvent.callback. "+err);
+                    }
+		}
             });
         } else {
             this.log("Unhandled alarm state: " + nextEvent.data);
