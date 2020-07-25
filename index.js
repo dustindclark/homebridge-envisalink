@@ -282,8 +282,9 @@ EnvisalinkPlatform.prototype.partitionUpdate = function (data) {
                         accservice.getCharacteristic(Characteristic.SecuritySystemCurrentState).setValue(resultat);
                     });
                 } else if (data.code == "626" || data.code == "650" || data.code == "651" || data.code == "653") { //Ready, Not Ready, Ready Force ARM
+                    var self = this;
                     partition.getReadyState(function (nothing, resultat) {
-                        this.log.info('Setting Obstructed', resultat);
+                        self.log.info('Setting Obstructed', resultat);
                         accservice.getCharacteristic(Characteristic.ObstructionDetected).setValue(resultat);
                     });
                 }
