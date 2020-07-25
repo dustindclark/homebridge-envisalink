@@ -1,11 +1,11 @@
 # homebridge-envisalink
+[![NPM Version](https://img.shields.io/npm/v/homebridge-envisalink.svg)](https://www.npmjs.com/package/homebridge-envisalink)
+
 This Homebridge plugin adds an Envisalink panel and its sensors into HomeKit.
 Alarm Panel can be armed (home/away) or disarmed by using Siri or the HomeKit app of your
 choice.  Sensors can also be used for automations (i.e. turn on light when door opens).
- 
-This plugin leverages [Node Alarm Proxy](https://www.npmjs.com/package/nodealarmproxy)
-in order to HomeKit/HomeBridge enable the Envisalink device.
 
+##Installation
 Example configuration is below.  See [config.schema.json](./blob/master/config.schema.json) for more info, including valid values.
 
 ```javascript
@@ -104,3 +104,7 @@ If you don't know what they are, you don't need them.  Skip this property.
 
 <br />
 *Note*: Only DSC panels have been tested thus far.  If you'd like to provide a Honeywell device for testing, I'd be glad to add support for this device and ship it back to you.
+
+## Credits
+This plugin leverages [Node Alarm Proxy](https://www.npmjs.com/package/nodealarmproxy)
+in order to HomeKit/HomeBridge enable the Envisalink device.

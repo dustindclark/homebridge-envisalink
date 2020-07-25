@@ -91,7 +91,6 @@
               "title": "Zone Number",
               "type": "integer",
               "required": false,
-              "default": 1,
               "minimum": 1,
               "description": "Assign a zone number (required for nonconsecutive zones), or just list them in the correct order."
             },
