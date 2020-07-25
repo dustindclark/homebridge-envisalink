@@ -1,0 +1,141 @@
+{
+  "pluginAlias": "Envisalink",
+  "pluginType": "platform",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "host": {
+        "title": "Host/IP Address",
+        "type": "string",
+        "required": true,
+        "description": "IP Address of Envisalink device. Should be static or DHCP-reserved"
+      },
+      "deviceType": {
+        "title": "Alarm Manufacturer",
+        "type": "string",
+        "required": true,
+        "default": "DSC",
+        "oneOf": [
+          {
+            "title": "DSC",
+            "enum": [
+              "DSC"
+            ]
+          }
+        ]
+      },
+      "password": {
+        "title": "Envisalink Password",
+        "type": "string",
+        "required": true,
+        "description": "Default is 'user' but should be changed in Envisalink settings for security",
+        "default": "user"
+      },
+      "pin": {
+        "title": "Alarm PIN",
+        "type": "string",
+        "required": true,
+        "description": "Should be a user PIN (not Installer or Master code)",
+        "default": "1234"
+      },
+      "suppressZoneAccessories": {
+        "title": "Suppress Accessories",
+        "type": "boolean",
+        "description": "If selected, panel sensors (contact, motion, etc) will not be added as accessories.",
+        "default": false
+      },
+      "suppressClockReset": {
+        "title": "Suppress Clock Reset",
+        "type": "boolean",
+        "description": "Plugin will update the date/time of your alarm system hourly unless selected",
+        "default": true
+      },
+      "partitions": {
+        "title": "Partitions",
+        "type": "array",
+        "items": {
+          "title": "Partition",
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string",
+              "description": "Distinguish between partitions if you have multiple (i.e. Upstairs/Downstairs).  Otherwise, name your alarm.",
+              "required": true
+            }
+          }
+        }
+      },
+      "zones": {
+        "title": "Zones",
+        "type": "array",
+        "items": {
+          "title": "Zone",
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "Zone Name",
+              "type": "string",
+              "required": true,
+              "description": "Front Door, Guest Windows, etc."
+            },
+            "partition": {
+              "title": "Partition",
+              "type": "integer",
+              "required": true,
+              "default": 1,
+              "minimum": 1,
+              "description": "Partition number that the zone belongs to."
+            },
+            "zoneNumber": {
+              "title": "Zone Number",
+              "type": "integer",
+              "required": false,
+              "default": 1,
+              "minimum": 1,
+              "description": "Assign a zone number (required for nonconsecutive zones), or just list them in the correct order."
+            },
+            "type": {
+              "title": "Sensor Type",
+              "type": "string",
+              "required": true,
+              "description": "Select the type of sensor",
+              "oneOf": [
+                {
+                  "title": "Door",
+                  "enum": [
+                    "door"
+                  ]
+                },
+                {
+                  "title": "Window",
+                  "enum": [
+                    "window"
+                  ]
+                },
+                {
+                  "title": "Leak",
+                  "enum": [
+                    "leak"
+                  ]
+                },
+                {
+                  "title": "Smoke",
+                  "enum": [
+                    "smoke"
+                  ]
+                },
+                {
+                  "title": "Motion",
+                  "enum": [
+                    "motion"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

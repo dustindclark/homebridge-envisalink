@@ -1,9 +1,12 @@
 # homebridge-envisalink
+This Homebridge plugin adds an Envisalink panel and its sensors into HomeKit.
+Alarm Panel can be armed (home/away) or disarmed by using Siri or the HomeKit app of your
+choice.  Sensors can also be used for automations (i.e. turn on light when door opens).
+ 
+This plugin leverages [Node Alarm Proxy](https://www.npmjs.com/package/nodealarmproxy)
+in order to HomeKit/HomeBridge enable the Envisalink device.
 
-This is a homebridge plugin leverages Node Alarm Proxy (https://www.npmjs.com/package/nodealarmproxy) in order to HomeKit/HomeBridge enable the Envisalink device.  
-Example configuration is below:
-
-Added support for Leak and Smoke Detectors.
+Example configuration is below.  See [config.schema.json](./blob/master/config.schema.json) for more info, including valid values.
 
 ```javascript
  "platforms": [
@@ -63,10 +66,11 @@ Added support for Leak and Smoke Detectors.
   ]
 ```
 
-## Disabling Clock Reset
+## Advanced Config
+### Disabling Clock Reset
 This plugin will update the date/time of your alarm system hourly unless you set "suppressClockReset" to true in the config.
 
-## Non-Consecutive Zones
+### Non-Consecutive Zones
 If your system has unused zones, simply include a *zoneNumber* integer property on ***each*** zone you have in the config. Make sure you put the property on each zone.
 
 Ex:
@@ -95,4 +99,8 @@ Ex:
 ...
 ```
 
-Only DSC panels have been tested thus far.  If you'd like to provide a Honeywell device for testing, I'd be glad to add support for this device and ship it back to you.
+### User Programs
+If you don't know what they are, you don't need them.  Skip this property.
+
+<br />
+*Note*: Only DSC panels have been tested thus far.  If you'd like to provide a Honeywell device for testing, I'd be glad to add support for this device and ship it back to you.
