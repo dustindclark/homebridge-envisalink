@@ -257,7 +257,7 @@ EnvisalinkPlatform.prototype.partitionUpdate = function (data) {
 
             if (accservice) {
                 if (data.code == "656") { //exit delay
-                    this.log.info('Exit delay.', resultat);
+                    this.log.info('Exit delay.');
                     enableSet = false;
                     var armMode = Characteristic.SecuritySystemCurrentState.AWAY_ARM;
                     if (partition.lastTargetState != null) {
@@ -267,10 +267,9 @@ EnvisalinkPlatform.prototype.partitionUpdate = function (data) {
                     accservice.getCharacteristic(Characteristic.SecuritySystemTargetState).setValue(armMode);
                     enableSet = true;
                 } else if (data.code == "657") { //entry-delay
-                    this.log.info('Entry delay.', resultat);
+                    this.log.info('Entry delay.');
                 } else if (data.code == "652" || data.code == "654" || data.code == "655") { //Armed, Alarm, Disarmed
                     partition.getAlarmState(function (nothing, resultat) {
-
                         if (partition.currentState !== undefined) {
                             delete partition.currentState;
                         }
