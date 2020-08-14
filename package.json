@@ -1,6 +1,6 @@
 {
   "name": "homebridge-envisalink",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "A homebridge plugin for the EnvisaLink alarm module",
   "main": "index.js",
   "scripts": {
@@ -29,5 +29,9 @@
     "nodealarmproxy": "1.0.1",
     "dateformat": ">=1.0.12"
   },
-  "homepage": "https://github.com/dustindclark/homebridge-envisalink#readme"
+  "homepage": "https://github.com/dustindclark/homebridge-envisalink#readme",
+  "funding": {
+    "type" : "paypal",
+    "url" : "https://paypal.me/dustindclark"
+  }
 }
