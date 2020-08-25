@@ -256,6 +256,7 @@ EnvisalinkPlatform.prototype.partitionUpdate = function (data) {
             var accservice = (partition.getServices())[0];
 
             if (accservice) {
+                this.log.info('Partition status is ', data.code, partition.status.name);
                 if (data.code == "656") { //exit delay
                     this.log.info('Exit delay.');
                     enableSet = false;
