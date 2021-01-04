@@ -37,7 +37,7 @@ function EnvisalinkPlatform(log, config) {
     this.deviceType = config.deviceType ? config.deviceType : 'DSC';
     this.pin = config.pin;
     this.password = config.password;
-    this.partitions = config.partitions ? config.partitions : [{name: 'Alarm'}];
+    this.partitions = config.partitions ? config.partitions : [{ name: 'Alarm' }];
     this.zones = config.zones ? config.zones : [];
     this.userPrograms = config.userPrograms ? config.userPrograms : [];
 
@@ -176,8 +176,14 @@ EnvisalinkPlatform.prototype.systemUpdate = function (data) {
                 var systemStatus = data.partition['' + (i + 1)];
                 if (systemStatus) {
                     var code = systemStatus.code.substring(0, 3);
-                    partitionAccessory.systemStatus = elink.tpicommands[code];
+                    partitionAccessory.systemStatus = Object.assign({}, elink.tpicommands[code]);
                     partitionAccessory.systemStatus.code = code;
+
+                    if (code == '652') {
+                        var mode = systemStatus.code.substring(4, 5);
+                        partitionAccessory.systemStatus.mode = mode;
+                    }
+
                     console.log("Set system status on accessory " + partitionAccessory.name + ' to ' + JSON.stringify(partitionAccessory.systemStatus));
                 }
             }
@@ -256,7 +262,9 @@ EnvisalinkPlatform.prototype.partitionUpdate = function (data) {
             var accservice = (partition.getServices())[0];
 
             if (accservice) {
-                this.log.info('Partition status is ', data.code, partition.status.name);
+                this.log.info('Partition', data.partition
+                    , 'status is', data.code, partition.status.name
+                    , (data.code == '652') ? 'mode ' + data.mode : '');
                 if (data.code == "656") { //exit delay
                     this.log.info('Exit delay.');
                     enableSet = false;
@@ -390,8 +398,6 @@ EnvisalinkAccessory.prototype.getAlarmState = function (callback) {
     var status = Characteristic.SecuritySystemCurrentState.DISARMED;
 
     if (currentState && currentState.partition === this.partition) {
-        //Default to disarmed
-
         if (currentState.send == "alarm") {
             status = Characteristic.SecuritySystemCurrentState.ALARM_TRIGGERED;
         } else if (currentState.send == "armed") {
@@ -407,6 +413,14 @@ EnvisalinkAccessory.prototype.getAlarmState = function (callback) {
         } else if (currentState.send == "exitdelay" || currentState.send == "entrydelay") {
             //Use the target alarm state during the exit and entrance delays.
             status = this.lastTargetState;
+        }
+    }
+    else if (this.systemStatus && this.systemStatus.mode) {
+        //0: AWAY, 1: STAY, 2:  ZERO-ENTRY-AWAY, 3:  ZERO-ENTRY-STAY
+        if (this.systemStatus.mode === '1' || this.systemStatus.mode === '3') {
+            status = Characteristic.SecuritySystemCurrentState.STAY_ARM;
+        } else {
+            status = Characteristic.SecuritySystemCurrentState.AWAY_ARM;
         }
     }
     callback(null, status);
