@@ -37,7 +37,7 @@ function EnvisalinkPlatform(log, config) {
     this.deviceType = config.deviceType ? config.deviceType : 'DSC';
     this.pin = config.pin;
     this.password = config.password;
-    this.partitions = config.partitions ? config.partitions : [{ name: 'Alarm' }];
+    this.partitions = config.partitions ? config.partitions : [{name: 'Alarm'}];
     this.zones = config.zones ? config.zones : [];
     this.userPrograms = config.userPrograms ? config.userPrograms : [];
 
@@ -175,16 +175,16 @@ EnvisalinkPlatform.prototype.systemUpdate = function (data) {
                 var partitionAccessory = this.platformPartitionAccessories[i];
                 var systemStatus = data.partition['' + (i + 1)];
                 if (systemStatus) {
+                    this.log.info('System status is: ', systemStatus.code);
                     var code = systemStatus.code.substring(0, 3);
                     partitionAccessory.systemStatus = Object.assign({}, elink.tpicommands[code]);
                     partitionAccessory.systemStatus.code = code;
 
                     if (code == '652') {
-                        var mode = systemStatus.code.substring(4, 5);
-                        partitionAccessory.systemStatus.mode = mode;
+                        partitionAccessory.systemStatus.mode = systemStatus.code.substring(4, 5);
                     }
 
-                    console.log("Set system status on accessory " + partitionAccessory.name + ' to ' + JSON.stringify(partitionAccessory.systemStatus));
+                    this.log.info('Set system status on accessory ' + partitionAccessory.name + ' to ' + JSON.stringify(partitionAccessory.systemStatus));
                 }
             }
         }
@@ -414,8 +414,7 @@ EnvisalinkAccessory.prototype.getAlarmState = function (callback) {
             //Use the target alarm state during the exit and entrance delays.
             status = this.lastTargetState;
         }
-    }
-    else if (this.systemStatus && this.systemStatus.mode) {
+    } else if (this.systemStatus && this.systemStatus.mode) {
         //0: AWAY, 1: STAY, 2:  ZERO-ENTRY-AWAY, 3:  ZERO-ENTRY-STAY
         if (this.systemStatus.mode === '1' || this.systemStatus.mode === '3') {
             status = Characteristic.SecuritySystemCurrentState.STAY_ARM;
