@@ -31,13 +31,6 @@
         "description": "Default is 'user' but should be changed in Envisalink settings for security",
         "default": "user"
       },
-      "pin": {
-        "title": "Alarm PIN",
-        "type": "string",
-        "required": true,
-        "description": "Should be a user PIN (not Installer or Master code)",
-        "default": "1234"
-      },
       "suppressZoneAccessories": {
         "title": "Suppress Accessories",
         "type": "boolean",
@@ -62,6 +55,13 @@
               "type": "string",
               "description": "Distinguish between partitions if you have multiple (i.e. Upstairs/Downstairs).  Otherwise, name your alarm.",
               "required": true
+            },
+            "pin": {
+              "title": "Alarm PIN",
+              "type": "string",
+              "required": true,
+              "description": "Should be a user PIN (not Installer or Master code)",
+              "default": "1234"
             }
           }
         }
