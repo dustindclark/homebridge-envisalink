@@ -53,7 +53,6 @@ function EnvisalinkPlatform(log, config) {
     try {
         for (var i = 0; i < this.partitions.length; i++) {
             var partition = this.partitions[i];
-            partition.pin = config.pin;
             var accessory = new EnvisalinkAccessory(this.log, "partition", partition, i + 1);
             this.platformPartitionAccessories.push(accessory);
         }
