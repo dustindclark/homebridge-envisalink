@@ -16,12 +16,12 @@ Example configuration is below.  See [config.schema.json](./blob/master/config.s
       "host": "192.168.0.XXX",
       "deviceType": "DSC",
       "password": "---envisalink password (default is user)---",
-      "pin": "---panel pin for disarming---",
       "suppressZoneAccessories": false,
       "suppressClockReset": false,
       "partitions": [
         {
-          "name": "Alarm"
+          "name": "Alarm",
+          "pin": "---partition panel pin for disarming---"
         }
       ],
       "zones": [
