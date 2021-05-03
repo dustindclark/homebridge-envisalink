@@ -110,10 +110,11 @@ function EnvisalinkPlatform(log, config) {
             zone: maxZone > 0 ? maxZone : null,
             userPrograms: this.userPrograms.length > 0 ? this.userPrograms.length : null,
             partition: this.partitions ? this.partitions.length : 1,
-            proxyenable: true,
+            proxyenable: config.proxyEnable !== undefined ? config.proxyEnable : true,
             atomicEvents: true,
             logging: false
         };
+        this.log.info("Proxy Enabled: " + this.alarmConfig.proxyenable);
         this.log.info("Zone Config: " + this.alarmConfig.zone);
         this.log.info("User Program Config: " + this.alarmConfig.userPrograms);
         this.alarm = nap.initConfig(this.alarmConfig);

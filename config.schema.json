@@ -50,6 +50,12 @@
         "description": "Plugin will update the date/time of your alarm system hourly unless selected",
         "default": true
       },
+      "proxyEnable": {
+        "title": "Enable Alarm proxy",
+        "type": "boolean",
+        "description": "If enabled, a proxy will be used to allow multiple platforms to query the alarm API. This can be set to false if only this plugin will be used with the alarm API.",
+        "default": true
+      },
       "partitions": {
         "title": "Partitions",
         "type": "array",
