@@ -46,7 +46,7 @@ function EnvisalinkPlatform(log, config) {
     this.password = config.password;
     this.partitions = config.partitions ? config.partitions : [{ name: 'Alarm' }];
     this.zones = config.zones ? config.zones : [];
-    this.userPrograms = config.userPrograms ? config.userPrograms : [];
+    this.customCommands = config.customCommands ? config.customCommands : [];
 
     this.log.info("Configuring Envisalink platform,  Host: " + config.host + ", port: " + config.port + ", type: " + this.deviceType);
 
@@ -88,15 +88,36 @@ function EnvisalinkPlatform(log, config) {
                 }
             }
         }
+        var extraZones = maxZone;
         this.platformProgramAccessories = [];
-        for (var i = 0; i < this.userPrograms.length; i++) {
-            var program = this.userPrograms[i];
-            if (program.type === "smoke") {
-                var accessory = new EnvisalinkAccessory(this.log, program.type, program, program.partition, maxZone + i + 1);
-                this.platformProgramAccessories.push(accessory);
-            } else {
-                this.log.error("Unhandled accessory type: " + program.type);
-            }
+        for (var i = 0; i < this.customCommands.length; i++) {
+            var program = this.customCommands[i];
+            var accessory = new EnvisalinkAccessory(this.log, "custom", program, 1, ++extraZones);
+            this.platformProgramAccessories.push(accessory);
+        }
+
+        if (config.firePanic && config.firePanic.enabled) {
+            this.log.info("Adding fire panic switch.");
+            var program = config.firePanic;
+            program.command = "0601";
+            var accessory = new EnvisalinkAccessory(this.log, "custom", program, 1, ++extraZones);
+            this.platformProgramAccessories.push(accessory);
+        }
+
+        if (config.ambulancePanic && config.ambulancePanic.enabled) {
+            this.log.info("Adding ambulance panic switch.");
+            var program = config.ambulancePanic;
+            program.command = "0602";
+            var accessory = new EnvisalinkAccessory(this.log, "custom", program, 1, ++extraZones);
+            this.platformProgramAccessories.push(accessory);
+        }
+
+        if (config.policePanic && config.policePanic.enabled) {
+            this.log.info("Adding police panic switch.");
+            var program = config.policePanic;
+            program.command = "0603";
+            var accessory = new EnvisalinkAccessory(this.log, "custom", program, 1, ++extraZones);
+            this.platformProgramAccessories.push(accessory);
         }
 
         this.log.info("Starting node alarm proxy...");
@@ -108,14 +129,13 @@ function EnvisalinkPlatform(log, config) {
             serverhost: '0.0.0.0',
             serverport: config.serverport ? config.serverport : 4026,
             zone: maxZone > 0 ? maxZone : null,
-            userPrograms: this.userPrograms.length > 0 ? this.userPrograms.length : null,
+            userPrograms: null,
             partition: this.partitions ? this.partitions.length : 1,
             proxyenable: true,
             atomicEvents: true,
             logging: false
         };
         this.log.info("Zone Config: " + this.alarmConfig.zone);
-        this.log.info("User Program Config: " + this.alarmConfig.userPrograms);
         this.alarm = nap.initConfig(this.alarmConfig);
         this.log.info("Node alarm proxy started.  Listening for connections at: " + this.alarmConfig.serverhost + ":" + this.alarmConfig.serverport);
         this.alarm.on('data', this.systemUpdate.bind(this));
@@ -248,7 +268,6 @@ EnvisalinkPlatform.prototype.zoneUpdate = function (data) {
                         });
 
                     } else if (accessory.accessoryType == "smoke") {
-
                         accessory.getSmokeStatus(function (nothing, resultat) {
                             accservice.getCharacteristic(Characteristic.SmokeDetected).setValue(resultat);
                         });
@@ -377,6 +396,14 @@ function EnvisalinkAccessory(log, accessoryType, config, partition, zone) {
             .getCharacteristic(Characteristic.SmokeDetected)
             .on('get', this.getSmokeStatus.bind(this));
         this.services.push(service);
+    }  else if (this.accessoryType == "custom") {
+        //var service = new Service.StatelessProgrammableSwitch(this.name);
+        var service = new Service.Switch(this.name);
+        this.command = config.command;
+        service.getCharacteristic(Characteristic.On)
+            .on('set', this.invokeCustomCommand.bind(this))
+            .on('get', this.getCustomCommandState.bind(this))
+        this.services.push(service);
     }
 }
 
@@ -429,6 +456,19 @@ EnvisalinkAccessory.prototype.setAlarmState = function (state, callback) {
     this.addDelayedEvent('alarm', state, callback);
 }
 
+EnvisalinkAccessory.prototype.invokeCustomCommand = function (state, callback) {
+    var self = this;
+    this.addDelayedEvent('custom', this.command, function(state) {
+        self.log("In invokeCustomCommand callback. Sending false.");
+        callback(null, false);
+        self.getServices()[0].updateCharacteristic(Characteristic.On, false);
+    });
+}
+
+EnvisalinkAccessory.prototype.getCustomCommandState = function (callback) {
+    callback(null, false);
+}
+
 EnvisalinkAccessory.prototype.getContactSensorState = function (callback) {
     if (this.status && this.status.send == "open") {
         callback(null, Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
@@ -474,8 +514,11 @@ EnvisalinkAccessory.prototype.processAlarmState = function (nextEvent, callback)
             } else if (nextEvent.data == Characteristic.SecuritySystemCurrentState.AWAY_ARM) {
                 this.log("Arming alarm to Away.");
                 command = "030" + this.partition;
+            } else if (nextEvent.type == "custom") {
+                command = nextEvent.data;
             }
             if (command) {
+                this.log("Command is " + command);
                 var self = this;
                 nap.manualCommand(command, function (msg) {
                     if (msg === '024') {
@@ -580,7 +623,7 @@ EnvisalinkAccessory.prototype.processDelayedEvents = function () {
                     setTimeout(this.processDelayedEvents.bind(this), 0);
                 }
             };
-            if (nextEvent.type === 'alarm') {
+            if (nextEvent.type === 'alarm' || nextEvent.type === 'custom') {
                 this.processAlarmState(nextEvent, callback.bind(this));
             } else if (nextEvent.type === 'time') {
                 this.processTimeChange(nextEvent, callback.bind(this));

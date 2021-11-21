@@ -19,6 +19,18 @@ Example configuration is below.  See [config.schema.json](./blob/master/config.s
       "pin": "---panel pin for disarming---",
       "suppressZoneAccessories": false,
       "suppressClockReset": false,
+      "ambulancePanic": {
+          "enabled": true,
+          "name": "Ambulance Panic"
+      },
+      "firePanic": {
+          "enabled": true,
+          "name": "Fire Panic"
+      },
+      "policePanic": {
+          "enabled": true,
+          "name": "Police Panic"
+      },
       "partitions": [
         {
           "name": "Alarm"
@@ -56,11 +68,14 @@ Example configuration is below.  See [config.schema.json](./blob/master/config.s
           "partition": 1
         }
       ],
-      "userPrograms": [
+      "customCommands": [
         {
-          "name": "Basement Smoke",
-          "type": "smoke",
-          "partition": 1
+          "name": "Chime Toggle - Partition 1",
+          "command": "0711*4"
+        },
+        {
+          "name": "System Test",
+          "command": "071*600004"
         }
       ]
     }
@@ -100,8 +115,8 @@ Ex:
 ...
 ```
 
-### User Programs
-If you don't know what they are, you don't need them.  Skip this property.
+### Custom Commands
+See documentation in "docs" folder for crafting a custom command. Examples above are real DSC commands.
 
 <br />
 *Note*: Only DSC panels have been tested thus far.  If you'd like to provide a Honeywell device for testing, I'd be glad to add support for this device and ship it back to you.

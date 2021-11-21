@@ -50,6 +50,57 @@
         "description": "Plugin will update the date/time of your alarm system hourly unless selected",
         "default": true
       },
+      "policePanic" :{
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "title": "Enable Police Panic",
+            "type": "boolean",
+            "description": "Creates a switch for police panic button",
+            "default": false
+          },
+          "name": {
+            "title": "Police Panic Switch Name",
+            "type": "string",
+            "description": "Name for police panic button.",
+            "default": "Police Panic"
+          }
+        }
+      },
+      "ambulancePanic" :{
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "title": "Enable Ambulance Panic",
+            "type": "boolean",
+            "description": "Creates a switch for ambulance panic button",
+            "default": false
+          },
+          "name": {
+            "title": "Ambulance Panic Switch Name",
+            "type": "string",
+            "description": "Name for ambulance panic button.",
+            "default": "Ambulance Panic"
+          }
+        }
+      },
+      "firePanic" :{
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "title": "Enable Fire Panic",
+            "type": "boolean",
+            "description": "Creates a switch for fire panic button",
+            "default": false
+          },
+          "name": {
+            "title": "Fire Panic Switch Name",
+            "type": "string",
+            "description": "Name for fire panic button.",
+            "default": "Fire Panic"
+          }
+        }
+      },
       "partitions": {
         "title": "Partitions",
         "type": "array",
@@ -131,6 +182,28 @@
                   ]
                 }
               ]
+            }
+          }
+        }
+      },
+      "customCommands": {
+        "title": "Custom Commands",
+        "type": "array",
+        "items": {
+          "title": "Custom Command",
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string",
+              "description": "Name of Custom Command",
+              "required": true
+            },
+            "command": {
+              "title": "Command",
+              "type": "string",
+              "description": "Custom Command Sequence",
+              "required": true
             }
           }
         }
