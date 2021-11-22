@@ -39,9 +39,14 @@ export class EnvisalinkCustomCommandAccessory {
             } else {
                 this.platform.log.debug('Ignoring false value for custom command');
             }
-            this.service.updateCharacteristic(this.platform.Characteristic.On, false);
         } catch (error) {
             this.platform.log.error('Failed invoking custom command', error);
+        } finally {
+            // Wait a second. Update doesn't work otherwise?
+            setTimeout(() => {
+                this.service.updateCharacteristic(this.platform.Characteristic.On, false);
+            }, 1000);
         }
+        return false;
     }
 }
