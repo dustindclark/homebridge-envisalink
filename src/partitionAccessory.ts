@@ -53,9 +53,9 @@ export class EnvisalinkPartitionAccessory {
 
     async setChimeActive(value: CharacteristicValue) {
         try {
-            this.platform.log.info(`setChimeActive to ${value} for partition ${this.partition.number}`);
-            const status = await this.platform.sendAlarmCommand(`0711*4`);
-            this.platform.log.info(`setChimeActive result status ${JSON.stringify(status)}`);
+            this.platform.log.debug(`setChimeActive to ${value} for partition ${this.partition.number}`);
+            await this.platform.sendAlarmCommand(`071${this.partition.number}*4`);
+            this.platform.log.debug(`setChimeActive complete.`);
         } catch (error) {
             this.platform.log.error(`Failed setting chime active to ${value}`, error);
         }
@@ -119,7 +119,7 @@ export class EnvisalinkPartitionAccessory {
 
     async setPanelState(value: CharacteristicValue) {
         try {
-            this.platform.log.info(`setPanelState to ${value} for partition ${this.partition.number}`);
+            this.platform.log.debug(`setPanelState to ${value} for partition ${this.partition.number}`);
             let command : string | undefined = undefined;
             switch(value) {
                 case this.platform.Characteristic.SecuritySystemCurrentState.DISARMED:

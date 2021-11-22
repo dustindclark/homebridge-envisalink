@@ -9,7 +9,7 @@ import {
 } from 'homebridge';
 
 import nap = require('nodealarmproxy');
-
+import dateFormat from "dateformat";
 import {PLATFORM_NAME, PLUGIN_NAME} from './settings';
 import {EnvisalinkConfig, ZoneConfig} from "./configTypes";
 import {
@@ -39,6 +39,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
 
     private alarm?: NodeAlarmProxy;
     private zoneConfigs: Map<string, ZoneConfig>;
+    private chimeInitialized = false;
 
     constructor(
         public readonly log: Logger,
@@ -88,6 +89,8 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
                 }, new Map<string, ZoneConfig>());
                 this.discoverPanicAccessories();
                 this.discoverCustomCommandAccessories();
+                // Wait for full initialization first
+                setTimeout(this.setTime.bind(this), 60000);
             } catch (error) {
                 this.log.error("Failed to initialize NodeAlarmProxy", error);
                 return;
@@ -118,7 +121,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
             partition: partitionCount,
             proxyenable: !!co.proxyPort,
             atomicEvents: true,
-            logging: false
+            logging: true
         };
         const nodeAlarm = nap.initConfig(alarmConfig);
         this.log.info(`Node alarm proxy started.  Listening for connections at: ${alarmConfig.serverhost}:${alarmConfig.serverport}`);
@@ -174,6 +177,22 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         }
     }
 
+    async setTime() {
+        if (!this.getConfig().suppressClockReset) {
+            try {
+                const date = dateFormat(new Date(), "HHMMmmddyy");
+                this.log.info("Setting the current time on the alarm system to: " + date);
+
+                await this.sendAlarmCommand(`010${date}`);
+                this.log.info("Time set successfully");
+            } catch (error) {
+                this.log.error(`Error setting time:`, error);
+            }
+            // Once per hour.
+            setTimeout(this.setTime.bind(this), 60 * 60 * 1000);
+        }
+    }
+
     updateZoneAccessory(zone: Zone) {
         const uuid = this.api.hap.uuid.generate(`envisalink.${zone.partition}.${zone.number}`);
         let accessory = this.accessories[uuid];
@@ -213,6 +232,18 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
             this.accessories[uuid] = accessory;
             new EnvisalinkPartitionAccessory(this, accessory);
             this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+        }
+        if (partition.enableChimeSwitch && !this.chimeInitialized) {
+            this.chimeInitialized = true;
+            // Super hacky, but toggle chime such that the initial status is reflected correctly.
+            // Wait 10 seconds for initial system startup (i.e. time sync).
+            const chimeCommand = `071${partition.number}*4`;
+            this.sendAlarmCommand(chimeCommand).then(() => {
+                this.sendAlarmCommand(chimeCommand).then(() => {
+                    this.log.debug("Chime toggled twice successfully to fetch initial status.");
+                }).catch(error => this.log.error("Second set chime failed while fetching status", error));
+            }).catch(error => this.log.error("First set chime failed while fetching status", error));
+
         }
     }
 
