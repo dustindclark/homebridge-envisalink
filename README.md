@@ -33,7 +33,8 @@ Example configuration is below.  See [config.schema.json](./blob/master/config.s
       },
       "partitions": [
         {
-          "name": "Alarm"
+          "name": "Alarm",
+          "enableChimeSwitch": true 
         }
       ],
       "zones": [
@@ -69,10 +70,6 @@ Example configuration is below.  See [config.schema.json](./blob/master/config.s
         }
       ],
       "customCommands": [
-        {
-          "name": "Chime Toggle - Partition 1",
-          "command": "0711*4"
-        },
         {
           "name": "System Test",
           "command": "071*600004"
@@ -116,7 +113,7 @@ Ex:
 ```
 
 ### Custom Commands
-See documentation in "docs" folder for crafting a custom command. Examples above are real DSC commands.
+See documentation in "docs" folder for crafting a custom command. Examples above are real DSC commands. Checksum will the added automatically. Do not suffix with checksum.
 
 <br />
 *Note*: Only DSC panels have been tested thus far.  If you'd like to provide a Honeywell device for testing, I'd be glad to add support for this device and ship it back to you.
