@@ -120,6 +120,12 @@
               "description": "Adds a switch to the partition for enabling/disabling door chime.",
               "required": false,
               "default": false
+            },
+            "pin": {
+              "title": "Partition PIN",
+              "type": "string",
+              "required": false,
+              "description": "Should be a user PIN (not Installer or Master code)"
             }
           }
         }

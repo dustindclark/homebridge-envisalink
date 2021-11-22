@@ -34,7 +34,8 @@ Example configuration is below.  See [config.schema.json](./blob/master/config.s
       "partitions": [
         {
           "name": "Alarm",
-          "enableChimeSwitch": true 
+          "enableChimeSwitch": true,
+          "pin": "1243"
         }
       ],
       "zones": [
@@ -117,6 +118,9 @@ See documentation in "docs" folder for crafting a custom command. Examples above
 
 <br />
 *Note*: Only DSC panels have been tested thus far.  If you'd like to provide a Honeywell device for testing, I'd be glad to add support for this device and ship it back to you.
+
+### PINs
+By default, all partitions use the same top level PIN. You can override this PIN at the partition level config. 
 
 ## Credits
 This plugin leverages [Node Alarm Proxy](https://www.npmjs.com/package/nodealarmproxy)
