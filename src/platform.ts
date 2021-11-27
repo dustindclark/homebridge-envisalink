@@ -266,7 +266,9 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         //   },
         //   "user": {}
         // }
-        this.log.debug(`Inside dataUpdate: ${JSON.stringify(data, null, 2)}`);
+        if (this.getConfig().enableVerboseLogging) {
+            this.log.debug(`Inside dataUpdate: ${this.json(data)}`);
+        }
         const zoneUpdates: Map<string, ZoneUpdate> = new Map(Object.entries(data.zone));
         Object.values(transformZoneStatuses(this.zoneConfigs, zoneUpdates)).forEach(zone => this.updateZoneAccessory(zone));
 
@@ -281,6 +283,9 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         //   "partition": 1,
         //   "code": "650"
         // }
+        if (this.getConfig().enableVerboseLogging) {
+            this.log.debug(`Inside partitionUpdate: ${this.json(data)}`);
+        }
         const partition = transformPartitionStatus(this.getConfig().partitions, data.partition, data);
         this.updatePartitionAccessory(partition);
         this.log.debug(`${partition.name} ${partition.status?.verbSuffix}`);
@@ -296,6 +301,9 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         //   "zone": 6,
         //   "code": "610"
         // }
+        if (this.getConfig().enableVerboseLogging) {
+            this.log.debug(`Inside zoneUpdate: ${this.json(data)}`);
+        }
         const zone = transformZoneStatus(this.zoneConfigs, data.zone, data);
         this.updateZoneAccessory(zone);
         this.log.debug(`${zone.name} ${zone.status?.verbSuffix}`);
@@ -306,7 +314,9 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
      * @param data
      */
     systemUpdate(data) {
-        this.log.info(`Inside systemUpdate: ${this.json(data)}`);
+        if (this.getConfig().enableVerboseLogging) {
+            this.log.debug(`Inside systemUpdate: ${this.json(data)}`);
+        }
     }
 
     json(data) {
