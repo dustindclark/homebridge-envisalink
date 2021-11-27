@@ -1,37 +1,60 @@
 {
+  "displayName": "Homebridge EnvisaLink Plugin",
   "name": "homebridge-envisalink",
-  "version": "0.3.1-beta.0",
+  "version": "0.4.2-beta.0",
   "description": "A homebridge plugin for the EnvisaLink alarm module",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": ""
+    "lint": "eslint src/**.ts --max-warnings=0",
+    "watch": "npm run build && npm link && nodemon",
+    "build": "rimraf ./dist && tsc",
+    "prepublishOnly": "npm run lint && npm run build && npm run test",
+    "test": "jest"
   },
+  "keywords": [
+    "homebridge-plugin",
+    "homebridge envisalink",
+    "homebridge envisa link",
+    "homebridge dsc envisalink",
+    "homekit dsc",
+    "homekit envisalink",
+    "homekit dsc envisalink"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/dustindclark/homebridge-envisalink"
   },
-  "keywords": [
-    "homebridge-plugin",
-    "envisalink",
-    "dsm"
-  ],
   "author": "Dustin D. Clark",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/dustindclark/homebridge-envisalink/issues"
   },
   "engines": {
-    "node": ">=0.12.0",
-    "homebridge": ">=0.2.0"
+    "node": ">=14.18.1",
+    "homebridge": ">=1.3.0"
   },
   "dependencies": {
+    "dateformat": ">=1.0.12 <5.0",
     "net": ">=1.0",
-    "nodealarmproxy": "1.0.1",
-    "dateformat": ">=1.0.12 <5.0"
+    "nodealarmproxy": "https://github.com/dustindclark/NodeAlarmProxy/tarball/cd001379a12c245fafbb9fd7100d6c0579cce44b"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.31",
+    "@types/jest": "^27.0.3",
+    "@typescript-eslint/eslint-plugin": "^5.4.0",
+    "@typescript-eslint/parser": "^5.4.0",
+    "eslint": "^7.21.0",
+    "homebridge": "^1.3.1",
+    "nodemon": "^2.0.7",
+    "rimraf": "^3.0.2",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.2",
+    "jest": "^27.3.1",
+    "ts-jest": "^27.0.7"
   },
   "homepage": "https://github.com/dustindclark/homebridge-envisalink#readme",
   "funding": {
-    "type" : "paypal",
-    "url" : "https://paypal.me/dustindclark"
+    "type": "paypal",
+    "url": "https://paypal.me/dustindclark"
   }
 }

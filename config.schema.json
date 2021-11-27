@@ -10,20 +10,6 @@
         "required": true,
         "description": "IP Address of Envisalink device. Should be static or DHCP-reserved"
       },
-      "deviceType": {
-        "title": "Alarm Manufacturer",
-        "type": "string",
-        "required": true,
-        "default": "DSC",
-        "oneOf": [
-          {
-            "title": "DSC",
-            "enum": [
-              "DSC"
-            ]
-          }
-        ]
-      },
       "password": {
         "title": "Envisalink Password",
         "type": "string",
@@ -37,6 +23,27 @@
         "required": true,
         "description": "Should be a user PIN (not Installer or Master code)",
         "default": "1234"
+      },
+      "port": {
+        "title": "Envisalink Port",
+        "type": "number",
+        "required": true,
+        "description": "Port that Envisalink is listening on.",
+        "default": 4025
+      },
+      "proxyPort": {
+        "title": "Proxy Port",
+        "type": "number",
+        "required": true,
+        "description": "Envisalink only supports 1 connection. If configured, a proxy server will listen on this port in support of multiple connections.",
+        "default": 4026
+      },
+      "enableVerboseLogging": {
+        "title": "Enable Verbose Logging",
+        "type": "boolean",
+        "required": false,
+        "description": "Enable verbose debug logging, including Envisalink connection info.",
+        "default": false
       },
       "suppressZoneAccessories": {
         "title": "Suppress Accessories",
@@ -113,6 +120,19 @@
               "type": "string",
               "description": "Distinguish between partitions if you have multiple (i.e. Upstairs/Downstairs).  Otherwise, name your alarm.",
               "required": true
+            },
+            "enableChimeSwitch": {
+              "title": "Enable Chime Switch",
+              "type": "boolean",
+              "description": "Adds a switch to the partition for enabling/disabling door chime.",
+              "required": false,
+              "default": false
+            },
+            "pin": {
+              "title": "Partition PIN",
+              "type": "string",
+              "required": false,
+              "description": "Should be a user PIN (not Installer or Master code)"
             }
           }
         }
