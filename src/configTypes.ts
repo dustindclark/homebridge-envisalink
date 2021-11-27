@@ -38,4 +38,5 @@ export type EnvisalinkConfig = {
     partitions: ReadonlyArray<PartitionConfig>;
     zones: ReadonlyArray<ZoneConfig>;
     customCommands: ReadonlyArray<CustomCommandConfig>;
+    enableVerboseLogging: boolean;
 } & PlatformConfig;

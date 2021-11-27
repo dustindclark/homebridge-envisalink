@@ -121,7 +121,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
             partition: partitionCount,
             proxyenable: !!co.proxyPort,
             atomicEvents: true,
-            logging: true
+            logging: co.enableVerboseLogging as boolean
         };
         const nodeAlarm = nap.initConfig(alarmConfig);
         this.log.info(`Node alarm proxy started.  Listening for connections at: ${alarmConfig.serverhost}:${alarmConfig.serverport}`);
