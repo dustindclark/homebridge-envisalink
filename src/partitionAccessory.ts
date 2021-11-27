@@ -4,7 +4,7 @@ import {EnvisalinkHomebridgePlatform} from './platform';
 import {MANUFACTURER, MODEL,} from './constants';
 import {Partition, PartitionMode} from "./types";
 
-const AWAY_MODES: ReadonlySet<PartitionMode> = new Set([PartitionMode.Away, PartitionMode.AwayZeroEntry]);
+const STAY_MODES: ReadonlySet<PartitionMode> = new Set([PartitionMode.Stay, PartitionMode.StayZeroEntry]);
 const CHIME_SERVICE_NAME = 'Chime';
 
 /**
@@ -76,12 +76,13 @@ export class EnvisalinkPartitionAccessory {
                 break;
             case 'armed':
             case 'armedbypass':
-                if (this.partition.status.mode && AWAY_MODES.has(this.partition.status.mode)) {
-                    currentState = this.platform.Characteristic.SecuritySystemCurrentState.AWAY_ARM;
-                    targetState = this.platform.Characteristic.SecuritySystemTargetState.AWAY_ARM;
-                } else {
+                this.platform.log.debug(`System is armed. Mode: ${this.partition.status.mode}`);
+                if (this.partition.status.mode && STAY_MODES.has(this.partition.status.mode)) {
                     currentState = this.platform.Characteristic.SecuritySystemCurrentState.STAY_ARM;
                     targetState = this.platform.Characteristic.SecuritySystemTargetState.STAY_ARM;
+                } else {
+                    currentState = this.platform.Characteristic.SecuritySystemCurrentState.AWAY_ARM;
+                    targetState = this.platform.Characteristic.SecuritySystemTargetState.AWAY_ARM;
                 }
                 break;
             case 'disarmed':
