@@ -12,7 +12,7 @@ export type ZoneUpdate = {
 
 export type PartitionUpdate = {
     partition?: number;
-    mode?: PartitionMode;
+    armMode?: PartitionMode;
 } & AreaUpdate;
 
 export interface NodeAlarmProxy {

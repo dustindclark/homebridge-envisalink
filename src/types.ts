@@ -8,10 +8,10 @@ export enum ZoneType {
 
 //0: AWAY, 1: STAY, 2:  ZERO-ENTRY-AWAY, 3:  ZERO-ENTRY-STAY
 export enum PartitionMode {
-    Away = 0,
-    Stay = 1,
-    AwayZeroEntry = 2,
-    StayZeroEntry = 3,
+    Away = "away",
+    Stay = "stay",
+    AwayZeroEntry = "zero-entry-away",
+    StayZeroEntry = "zero-entry-stay",
 }
 
 type Status = {

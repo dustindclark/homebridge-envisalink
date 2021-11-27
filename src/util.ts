@@ -64,7 +64,7 @@ export const transformPartitionStatus = (partitionConfigs: ReadonlyArray<Partiti
             text: detailedStatus.send,
             action: detailedStatus.action,
             verbSuffix: detailedStatus.post,
-            mode: partitionStatus.mode,
+            mode: partitionStatus.armMode,
         }
     };
 };
