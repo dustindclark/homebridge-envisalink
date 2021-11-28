@@ -301,7 +301,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
 
     partitionUserUpdate(data) {
         try {
-            this.log.info(`Inside partitionUserUpdate: ${this.json(data)}`);
+            this.log.debug(`Inside partitionUserUpdate: ${this.json(data)}`);
             // TODO.
         } catch (error) {
             this.log.error(`Caught error in systemUpdate. Data: ${this.json(data)}`, error);
@@ -354,7 +354,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
     }
 
     public async sendAlarmCommand(command: string): Promise<void> {
-        this.log.info(`Sending command to NAP ${command}`);
+        this.log.debug(`Sending command to NAP ${command}`);
         await new Promise<void>((resolve, reject) => {
             nap.manualCommand(command, function (errorCode) {
                 if (errorCode) {
