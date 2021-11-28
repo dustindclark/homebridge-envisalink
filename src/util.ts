@@ -9,17 +9,21 @@ enum ChimeStatus {
 }
 
 export const transformZoneStatuses = (zoneConfigs: Map<string, ZoneConfig>, zoneStatuses: Map<string, ZoneUpdate>): Map<number, Zone> => {
-    return Array.from(zoneStatuses).reduce((map, [zoneNumberString, zone]) => {
+    return Array.from(zoneStatuses).reduce((map, [zoneNumberString, zoneUpdate]) => {
         const zoneNumber: number = +zoneNumberString;
-        map.set(zoneNumber, transformZoneStatus(zoneConfigs, zoneNumber, zone));
+        const zone = transformZoneStatus(zoneConfigs, zoneNumber, zoneUpdate);
+        if (zone != null) {
+            map.set(zoneNumber, zone);
+        }
         return map;
     }, new Map());
 };
 
-export const transformZoneStatus = (zoneConfigs: Map<string, ZoneConfig>, number: number, zone: ZoneUpdate): Zone => {
+export const transformZoneStatus = (zoneConfigs: Map<string, ZoneConfig>, number: number, zone: ZoneUpdate): Zone | null => {
     const zoneConfig = zoneConfigs.get(`${number}`);
     if (!zoneConfig) {
-        throw new Error(`Zone config is (${JSON.stringify(zoneConfig)}) for zone ${number}. Check config: ${JSON.stringify(zoneConfigs)}`);
+        // Non-consecutive zone.
+        return null;
     }
     const statusCode = zone.code && zone.code.length > 2 ? zone.code.substring(0, 3) : zone.code;
     const detailedStatus = envisalinkCodes.tpicommands[statusCode];
