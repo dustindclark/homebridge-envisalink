@@ -22,16 +22,16 @@ describe('Zone', () => {
         } as ZoneUpdate;
         const result = transformZoneStatus(zoneConfigs, 1, zoneUpdate);
         expect(result).toBeTruthy();
-        expect(result.number).toEqual(1);
-        expect(result.partition).toEqual(2);
-        expect(result.type).toEqual(ZoneType.Motion);
-        expect(result.name).toEqual("Zone 1");
-        expect(result.status).toBeTruthy();
-        expect(result.status.action).toEqual("updatezone");
-        expect(result.status.description).toEqual("Zone Restore");
-        expect(result.status.shortCode).toEqual("610");
-        expect(result.status.text).toEqual("openrestore");
-        expect(result.status.verbSuffix).toEqual("is restored");
+        expect(result!.number).toEqual(1);
+        expect(result!.partition).toEqual(2);
+        expect(result!.type).toEqual(ZoneType.Motion);
+        expect(result!.name).toEqual("Zone 1");
+        expect(result!.status).toBeTruthy();
+        expect(result!.status.action).toEqual("updatezone");
+        expect(result!.status.description).toEqual("Zone Restore");
+        expect(result!.status.shortCode).toEqual("610");
+        expect(result!.status.text).toEqual("openrestore");
+        expect(result!.status.verbSuffix).toEqual("is restored");
     });
 
     it('Transform Statuses', () => {
