@@ -5,10 +5,9 @@ import {
     transformZoneStatuses
 } from '../src/util';
 import {PartitionConfig, ZoneConfig} from "../src/configTypes";
-import {ZoneUpdate} from "../dist/nodeAlarmProxyTypes";
-import {ZoneType} from "../dist/types";
+import {ZoneUpdate} from "../src/nodeAlarmProxyTypes";
+import {ZoneType} from "../src/types";
 import {PartitionUpdate} from "../src/nodeAlarmProxyTypes";
-import {PrepareStreamResponse} from "homebridge";
 
 
 describe('Zone', () => {
