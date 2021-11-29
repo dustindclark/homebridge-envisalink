@@ -77,7 +77,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
             this.log.info(`Configuring Envisalink platform,  Host: ${co.host} Port: ${co.port}`);
 
             try {
-                const maxZoneNumber = Math.max.apply(Math, co.zones.map((zone) => { return zone.zoneNumber || -1}));
+                const maxZoneNumber = Math.max(...co.zones.map((zone) => { return zone.zoneNumber || -1;}));
                 this.alarm = this.initializeNodeAlarmProxy(co.partitions.length, Math.max(maxZoneNumber, co.zones.length));
                 let increment = 0;
                 this.zoneConfigs = co.zones.reduce((map, zoneConfig) => {
