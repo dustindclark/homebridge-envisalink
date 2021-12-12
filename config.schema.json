@@ -14,7 +14,7 @@
         "title": "Envisalink Password",
         "type": "string",
         "required": true,
-        "description": "Default is 'user' but should be changed in Envisalink settings for security",
+        "description": "This is the password you use to login to the Envislink locally. Access the IP address of your Envisalink in a browser. The password that you use to login is the password that should be used here. Default is 'user' but should be changed in Envisalink settings for security",
         "default": "user"
       },
       "pin": {
@@ -34,7 +34,7 @@
       "proxyPort": {
         "title": "Proxy Port",
         "type": "number",
-        "required": true,
+        "required": false,
         "description": "Envisalink only supports 1 connection. If configured, a proxy server will listen on this port in support of multiple connections.",
         "default": 4026
       },

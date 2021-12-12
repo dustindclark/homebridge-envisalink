@@ -6,6 +6,9 @@ This Homebridge plugin adds an Envisalink panel and its sensors into HomeKit.
 Alarm Panel can be armed (home/away) or disarmed by using Siri or the HomeKit app of your
 choice.  Sensors can also be used for automations (i.e. turn on light when door opens).
 
+This plugin has been tested with both Envisalink 3 and Envisalink 4. Envisalink 3 firmware
+should be upgraded to 1.12.182 or higher.
+
 ##Installation
 Example configuration is below.  See [config.schema.json](./blob/master/config.schema.json) for more info, including valid values.
 
@@ -80,6 +83,13 @@ Example configuration is below.  See [config.schema.json](./blob/master/config.s
   ]
 ```
 
+## Password
+
+The password field is the password you use to login to the Envislink locally.
+In order the find/change this password, access the IP address of your Envisalink in a browser.
+The password that you use to login is the password that should be used here. Default is 'user'
+but should be changed in settings for security.
+
 ## Advanced Config
 ### Disabling Clock Reset
 This plugin will update the date/time of your alarm system hourly unless you set "suppressClockReset" to true in the config.
@@ -117,7 +127,7 @@ Ex:
 See documentation in "docs" folder for crafting a custom command. Examples above are real DSC commands. Checksum will the added automatically. Do not suffix with checksum.
 
 <br />
-*Note*: Only DSC panels have been tested thus far.  If you'd like to provide a Honeywell device for testing, I'd be glad to add support for this device and ship it back to you.
+*Note*: I have only tested with DSC panels. This should work with Honeywell devices since the Envisalink API is the same, but this has not been tested. 
 
 ### PINs
 By default, all partitions use the same top level PIN. You can override this PIN at the partition level config. 
