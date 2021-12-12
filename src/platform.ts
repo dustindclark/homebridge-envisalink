@@ -110,6 +110,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
 
     initializeNodeAlarmProxy(partitionCount: number, zoneCount: number): NodeAlarmProxy {
         const co = this.getConfig();
+        const proxyEnabled = !!co.proxyPort;
         const alarmConfig = {
             password: co.password,
             serverpassword: co.password,
@@ -120,12 +121,17 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
             zone: zoneCount,
             userPrograms: null,
             partition: partitionCount,
-            proxyenable: !!co.proxyPort,
+            proxyenable: proxyEnabled,
             atomicEvents: true,
-            logging: co.enableVerboseLogging as boolean
+            logging: co.enableVerboseLogging as boolean,
+            logger: this.log
         };
         const nodeAlarm = nap.initConfig(alarmConfig);
-        this.log.info(`Node alarm proxy started.  Listening for connections at: ${alarmConfig.serverhost}:${alarmConfig.serverport}`);
+        if (proxyEnabled) {
+            this.log.info(`Node alarm proxy started.  Listening for connections at: ${alarmConfig.serverhost}:${alarmConfig.serverport}`);
+        } else {
+            this.log.info(`Node alarm proxy started. Proxy is disabled`);
+        }
         nodeAlarm.on('data', this.dataUpdate.bind(this));
         nodeAlarm.on('zoneupdate', this.zoneUpdate.bind(this));
         nodeAlarm.on('partitionupdate', this.partitionUpdate.bind(this));
@@ -244,7 +250,6 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
                     this.log.debug("Chime toggled twice successfully to fetch initial status.");
                 }).catch(error => this.log.error("Second set chime failed while fetching status", error));
             }).catch(error => this.log.error("First set chime failed while fetching status", error));
-
         }
     }
 
