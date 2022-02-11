@@ -59,6 +59,7 @@ export const transformPartitionStatus = (partitionConfigs: ReadonlyArray<Partiti
         name: partitionConfig.name,
         number: number,
         enableChimeSwitch: partitionConfig.enableChimeSwitch || false,
+        chimeCommand: partitionConfig.chimeCommandOverride || `071${number}*4`,
         chimeActive: chimeEnabled,
         pin: partitionConfig.pin,
         status: {

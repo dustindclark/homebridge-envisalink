@@ -4,6 +4,7 @@ import {ZoneType} from './types';
 export type PartitionConfig = {
     name: string;
     enableChimeSwitch?: boolean;
+    chimeCommandOverride?: string;
     pin?: string;
 };
 

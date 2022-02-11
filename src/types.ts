@@ -44,6 +44,7 @@ export type Partition = {
     number: number;
     status: PartitionStatus;
     enableChimeSwitch: boolean;
+    chimeCommand: string;
     pin?: string;
     chimeActive?: boolean;
 };

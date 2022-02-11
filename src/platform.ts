@@ -244,9 +244,8 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
             this.chimeInitialized = true;
             // Super hacky, but toggle chime such that the initial status is reflected correctly.
             // Wait 10 seconds for initial system startup (i.e. time sync).
-            const chimeCommand = `071${partition.number}*4`;
-            this.sendAlarmCommand(chimeCommand).then(() => {
-                this.sendAlarmCommand(chimeCommand).then(() => {
+            this.sendAlarmCommand(partition.chimeCommand).then(() => {
+                this.sendAlarmCommand(partition.chimeCommand).then(() => {
                     this.log.debug("Chime toggled twice successfully to fetch initial status.");
                 }).catch(error => this.log.error("Second set chime failed while fetching status", error));
             }).catch(error => this.log.error("First set chime failed while fetching status", error));

@@ -71,6 +71,7 @@ describe('Partition', () => {
         expect(result.name).toEqual("Partition 1");
         expect(result.status).toBeTruthy();
         expect(result.enableChimeSwitch).toEqual(true);
+        expect(result.chimeCommand).toEqual(`0711*4`);
         expect(result.status.action).toEqual("updatepartition");
         expect(result.status.description).toEqual("Partition Ready");
         expect(result.status.shortCode).toEqual("650");
