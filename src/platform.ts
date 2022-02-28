@@ -139,6 +139,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         nodeAlarm.on('partitionupdate', this.partitionUpdate.bind(this));
         nodeAlarm.on('partitionuserupdate', this.partitionUserUpdate.bind(this));
         nodeAlarm.on('systemupdate', this.systemUpdate.bind(this));
+        nodeAlarm.on('coderequired', this.partitionUpdate.bind(this));
         return nodeAlarm;
     }
 
