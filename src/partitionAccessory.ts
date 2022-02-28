@@ -74,6 +74,8 @@ export class EnvisalinkPartitionAccessory {
             case 'alarm':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.ALARM_TRIGGERED;
                 break;
+            case 'partialclosing':
+            case 'specialclosing':
             case 'armed':
             case 'armedbypass':
                 this.platform.log.debug(`System is armed. Mode: ${this.partition.status.mode}`);
@@ -88,7 +90,7 @@ export class EnvisalinkPartitionAccessory {
             case 'disarmed':
             case 'notready':
             case 'failedarm':
-            case 'useropen':
+            case 'useropening':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.DISARMED;
                 targetState = this.platform.Characteristic.SecuritySystemTargetState.DISARM;
                 obstructionDetected = true;
