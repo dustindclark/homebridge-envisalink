@@ -77,7 +77,9 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
             this.log.info(`Configuring Envisalink platform,  Host: ${co.host} Port: ${co.port}`);
 
             try {
-                const maxZoneNumber = Math.max(...co.zones.map((zone) => { return zone.zoneNumber || -1;}));
+                const maxZoneNumber = Math.max(...co.zones.map((zone) => {
+                    return zone.zoneNumber || -1;
+                }));
                 this.alarm = this.initializeNodeAlarmProxy(co.partitions.length, Math.max(maxZoneNumber, co.zones.length));
                 let increment = 0;
                 this.zoneConfigs = co.zones.reduce((map, zoneConfig) => {
@@ -245,9 +247,13 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
             // Super hacky, but toggle chime such that the initial status is reflected correctly.
             // Wait 10 seconds for initial system startup (i.e. time sync).
             this.sendAlarmCommand(partition.chimeCommand).then(() => {
-                this.sendAlarmCommand(partition.chimeCommand).then(() => {
-                    this.log.debug("Chime toggled twice successfully to fetch initial status.");
-                }).catch(error => this.log.error("Second set chime failed while fetching status", error));
+                // Give the panel a chance to process the command.
+                setTimeout(() => {
+                    this.sendAlarmCommand(partition.chimeCommand).then(() => {
+                        this.log.debug("Chime toggled twice successfully to fetch initial status.");
+                    }).catch(error => this.log.error("Second set chime failed while fetching status", error));
+                }, 2000);
+
             }).catch(error => this.log.error("First set chime failed while fetching status", error));
         }
     }
