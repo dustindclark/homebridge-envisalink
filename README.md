@@ -90,11 +90,11 @@ In order the find/change this password, access the IP address of your Envisalink
 The password that you use to login is the password that should be used here. Default is 'user'
 but should be changed in settings for security.
 
-##Night vs. Stay
+##Home vs. Night
 DSC does not distinguish between these 2 arm modes that are provided in HomeKit. The behavior of the plugin
 (as of 1.0.7) is as follows:
 
-- *Stay*: Arm to stay with entry delay.
+- *Home*: Arm to stay with entry delay.
 - *Night*: Arm to stay with no entry delay (panel will be armed instantly)
 
 ## Advanced Config
