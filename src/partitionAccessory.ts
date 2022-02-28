@@ -132,7 +132,7 @@ export class EnvisalinkPartitionAccessory {
                     command = `031${this.partition.number}`;
                     break;
                 case this.platform.Characteristic.SecuritySystemCurrentState.NIGHT_ARM:
-                    command = `032${this.partition.number}`;
+                    command = `032${this.partition.number}${this.partition.pin}`;
                     break;
                 case this.platform.Characteristic.SecuritySystemCurrentState.AWAY_ARM:
                     command = `030${this.partition.number}`;
