@@ -74,6 +74,7 @@ export class EnvisalinkPartitionAccessory {
             case 'coderequired':
                 this.platform.log.info(`Panel has requested code (900 response). Sending PIN...`);
                 this.platform.sendAlarmCommand(`200${this.partition.pin}`);
+                break;
             case 'alarm':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.ALARM_TRIGGERED;
                 break;
