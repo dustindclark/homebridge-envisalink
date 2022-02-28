@@ -126,7 +126,6 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
             partition: partitionCount,
             proxyenable: proxyEnabled,
             atomicEvents: true,
-            logging: co.enableVerboseLogging as boolean,
             logger: this.log
         };
         const nodeAlarm = nap.initConfig(alarmConfig);

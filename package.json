@@ -36,7 +36,7 @@
   "dependencies": {
     "dateformat": ">=1.0.12 <5.0",
     "net": ">=1.0",
-    "nodealarmproxy": "https://github.com/dustindclark/NodeAlarmProxy/tarball/f6bfc5e3f38df3b838f2ed16dc9a5f6ff6cfd54d"
+    "nodealarmproxy": "https://github.com/dustindclark/NodeAlarmProxy/tarball/b4f52600019965a843f17de51bcd1780c314cdf3"
   },
   "devDependencies": {
     "@types/node": "^14.14.31",
