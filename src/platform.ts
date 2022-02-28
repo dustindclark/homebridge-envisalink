@@ -40,6 +40,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
     private alarm?: NodeAlarmProxy;
     private zoneConfigs: Map<string, ZoneConfig>;
     private chimeInitialized = false;
+    private lastPartitionAction?: Partition;
 
     constructor(
         public readonly log: Logger,
@@ -139,7 +140,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         nodeAlarm.on('partitionupdate', this.partitionUpdate.bind(this));
         nodeAlarm.on('partitionuserupdate', this.partitionUserUpdate.bind(this));
         nodeAlarm.on('systemupdate', this.systemUpdate.bind(this));
-        nodeAlarm.on('coderequired', this.partitionUpdate.bind(this));
+        nodeAlarm.on('coderequired', this.codeRequired.bind(this));
         return nodeAlarm;
     }
 
@@ -351,9 +352,25 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
             if (this.getConfig().enableVerboseLogging) {
                 this.log.debug(`Inside systemUpdate: ${this.json(data)}`);
             }
-            // TODO. Handle smoke sensors.
         } catch (error) {
             this.log.error(`Caught error in systemUpdate. Data: ${this.json(data)}`, error);
+        }
+    }
+
+    codeRequired() {
+        try {
+            if (this.getConfig().enableVerboseLogging) {
+                this.log.debug(`Inside codeRequired.`);
+            }
+            if (!this.lastPartitionAction) {
+                this.log.error(`Can't handle pin request from panel because last partition is null. ` +
+                    `Previous command will be ignored.`);
+                return;
+            }
+            this.log.info(`Panel has requested code (900 response). Sending PIN...`);
+            this.sendAlarmCommand(`200${this.lastPartitionAction.pin}`);
+        } catch (error) {
+            this.log.error(`Caught error in codeRequired.`, error);
         }
     }
 
@@ -363,6 +380,10 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
 
     getConfig(): EnvisalinkConfig {
         return this.config as EnvisalinkConfig;
+    }
+
+    public setLastPartitionAction(partition: Partition): void {
+        this.lastPartitionAction = partition;
     }
 
     public async sendAlarmCommand(command: string): Promise<void> {

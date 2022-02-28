@@ -71,10 +71,6 @@ export class EnvisalinkPartitionAccessory {
         let currentState: number | undefined = undefined;
         let obstructionDetected = false;
         switch (this.partition.status.text) {
-            case 'coderequired':
-                this.platform.log.info(`Panel has requested code (900 response). Sending PIN...`);
-                this.platform.sendAlarmCommand(`200${this.partition.pin}`);
-                break;
             case 'alarm':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.ALARM_TRIGGERED;
                 break;
@@ -83,9 +79,12 @@ export class EnvisalinkPartitionAccessory {
             case 'armed':
             case 'armedbypass':
                 this.platform.log.debug(`System is armed. Mode: ${this.partition.status.mode}`);
-                if (this.partition.status.mode && STAY_MODES.has(this.partition.status.mode)) {
+                if (PartitionMode.Stay === this.partition.status.mode) {
                     currentState = this.platform.Characteristic.SecuritySystemCurrentState.STAY_ARM;
                     targetState = this.platform.Characteristic.SecuritySystemTargetState.STAY_ARM;
+                } else if (PartitionMode.StayZeroEntry === this.partition.status.mode) {
+                    currentState = this.platform.Characteristic.SecuritySystemCurrentState.NIGHT_ARM;
+                    targetState = this.platform.Characteristic.SecuritySystemTargetState.NIGHT_ARM;
                 } else {
                     currentState = this.platform.Characteristic.SecuritySystemCurrentState.AWAY_ARM;
                     targetState = this.platform.Characteristic.SecuritySystemTargetState.AWAY_ARM;
@@ -133,8 +132,10 @@ export class EnvisalinkPartitionAccessory {
                     command = `040${this.partition.number}${this.partition.pin}`;
                     break;
                 case this.platform.Characteristic.SecuritySystemCurrentState.STAY_ARM:
-                case this.platform.Characteristic.SecuritySystemCurrentState.NIGHT_ARM:
                     command = `031${this.partition.number}`;
+                    break;
+                case this.platform.Characteristic.SecuritySystemCurrentState.NIGHT_ARM:
+                    command = `032${this.partition.number}`;
                     break;
                 case this.platform.Characteristic.SecuritySystemCurrentState.AWAY_ARM:
                     command = `030${this.partition.number}`;
@@ -144,6 +145,7 @@ export class EnvisalinkPartitionAccessory {
                 this.platform.log.error(`Unhandled alarm state ${value}. Ignoring command.`);
                 return;
             }
+            this.platform.setLastPartitionAction(this.partition);
             await this.platform.sendAlarmCommand(command);
             this.platform.log.debug(`Successfully set alarm panel state to ${value} on partition ${this.partition.number}`);
         } catch (error) {
