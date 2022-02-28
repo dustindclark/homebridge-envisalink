@@ -128,13 +128,6 @@
               "required": false,
               "default": false
             },
-            "chimeCommandOverride": {
-              "title": "Override Command for Chime Toggle",
-              "type": "string",
-              "description": "If the command for your panel is not '071${partition.number}*4', you can override it here.",
-              "required": false,
-              "default": ""
-            },
             "pin": {
               "title": "Partition PIN",
               "type": "string",
