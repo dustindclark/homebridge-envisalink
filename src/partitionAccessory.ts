@@ -71,6 +71,9 @@ export class EnvisalinkPartitionAccessory {
         let currentState: number | undefined = undefined;
         let obstructionDetected = false;
         switch (this.partition.status.text) {
+            case 'coderequired':
+                this.platform.log.info(`Panel has requested code (900 response). Sending PIN...`);
+                this.platform.sendAlarmCommand(`200${this.partition.pin}`);
             case 'alarm':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.ALARM_TRIGGERED;
                 break;
