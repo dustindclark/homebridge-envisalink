@@ -4,7 +4,6 @@ import {EnvisalinkHomebridgePlatform} from './platform';
 import {MANUFACTURER, MODEL,} from './constants';
 import {Partition, PartitionMode} from "./types";
 
-const STAY_MODES: ReadonlySet<PartitionMode> = new Set([PartitionMode.Stay, PartitionMode.StayZeroEntry]);
 const CHIME_SERVICE_NAME = 'Chime';
 
 /**
