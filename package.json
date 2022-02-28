@@ -1,7 +1,7 @@
 {
   "displayName": "Homebridge EnvisaLink",
   "name": "homebridge-envisalink",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A homebridge plugin for the EnvisaLink alarm module",
   "main": "dist/index.js",
   "scripts": {
