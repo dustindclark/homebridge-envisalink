@@ -77,6 +77,8 @@ export class EnvisalinkPartitionAccessory {
                 break;
             case 'partialclosing':
             case 'specialclosing':
+                this.platform.log.info(`Ignoring status ${this.partition.status.text}. Waiting for armed/armedbypass`);
+                break;
             case 'armed':
             case 'armedbypass':
                 if (PartitionMode.Stay === this.partition.status.mode) {
