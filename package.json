@@ -41,7 +41,7 @@
   "devDependencies": {
     "@types/node": "^18.7.18",
     "@types/jest": "^27.0.3",
-    "@typescript-eslint/eslint-plugin": "^5.4.0",
+    "@typescript-eslint/eslint-plugin": "^5.38.0",
     "@typescript-eslint/parser": "^5.38.0",
     "eslint": "^8.23.1",
     "homebridge": "^1.5.0",
