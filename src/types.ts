@@ -23,9 +23,7 @@ type Status = {
     verbSuffix?: string; //is restored.
 }
 
-export type ZoneStatus = {
-
-} & Status;
+export type ZoneStatus = | Status;
 
 export type PartitionStatus = {
     mode?: PartitionMode;
