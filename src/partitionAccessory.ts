@@ -69,6 +69,8 @@ export class EnvisalinkPartitionAccessory {
         let targetState: number | undefined = undefined;
         let currentState: number | undefined = undefined;
         let obstructionDetected = false;
+        this.platform.log.info(`Partition ${this.partition.number}: ${this.partition.status.text}, ` +
+          `mode: ${this.partition.status.mode}.`);
         switch (this.partition.status.text) {
             case 'alarm':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.ALARM_TRIGGERED;
@@ -77,7 +79,6 @@ export class EnvisalinkPartitionAccessory {
             case 'specialclosing':
             case 'armed':
             case 'armedbypass':
-                this.platform.log.debug(`System is armed. Mode: ${this.partition.status.mode}`);
                 if (PartitionMode.Stay === this.partition.status.mode) {
                     currentState = this.platform.Characteristic.SecuritySystemCurrentState.STAY_ARM;
                     targetState = this.platform.Characteristic.SecuritySystemTargetState.STAY_ARM;
