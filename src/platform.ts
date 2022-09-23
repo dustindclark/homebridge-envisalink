@@ -88,6 +88,9 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
                     if (!zoneConfig.zoneNumber) {
                         zoneConfig.zoneNumber = increment;
                     }
+                    if (!zoneConfig.name) {
+                        zoneConfig.name = `Zone ${increment}`;
+                    }
                     map.set(`${zoneConfig.zoneNumber}`, zoneConfig);
                     return map;
                 }, new Map<string, ZoneConfig>());
