@@ -226,17 +226,22 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
 
     async bypassAllOpenZones(partition: number) {
         try {
-            this.log.info('Bypassing open zones.');
+            this.log.info(`Bypassing open zones in partition: ${partition}.`);
             let bypassedCount = 0;
             for(const accessory of this.accessories.values()) {
                 if (accessory.context && Object.prototype.hasOwnProperty.call(accessory.context, 'type')) {
+                    this.log.debug(`Accessory ${accessory.displayName} is a zone.`);
                     const zone = accessory.context as Zone;
                     if (zone.partition === partition && CONTACT_SENSORS.has(zone.type) && zone.status.text === 'open') {
                         this.log.info(`Bypassing open zone: ${zone.name}`);
                         const zoneString = String(zone.number).padStart(2, "0");
                         await this.sendAlarmCommand(`071${partition}*1${zoneString}`);
                         bypassedCount ++;
+                    } else {
+                        this.log.debug(`Zone ${zone.name} is either not a contact sensor or is closed`);
                     }
+                } else {
+                    this.log.debug(`Accessory ${accessory.displayName} is not a zone.`);
                 }
             }
             this.log.info(`${bypassedCount} open zones were bypassed.`);
