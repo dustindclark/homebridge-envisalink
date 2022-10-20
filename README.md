@@ -90,7 +90,7 @@ In order the find/change this password, access the IP address of your Envisalink
 The password that you use to login is the password that should be used here. Default is 'user'
 but should be changed in settings for security.
 
-##Home vs. Night
+## Home vs. Night
 DSC does not distinguish between these 2 arm modes that are provided in HomeKit. The behavior of the plugin
 (as of 1.1.0) is as follows:
 
@@ -132,12 +132,22 @@ Ex:
 
 ### Custom Commands
 See documentation in "docs" folder for crafting a custom command. Examples above are real DSC commands. Checksum will the added automatically. Do not suffix with checksum.
-
 <br />
-*Note*: I have only tested with DSC panels. This should work with Honeywell devices since the Envisalink API is the same, but this has not been tested. 
+
+**Note**: I have only tested with DSC panels. This should work with Honeywell devices since the Envisalink API is the same, but this has not been tested. 
 
 ### PINs
 By default, all partitions use the same top level PIN. You can override this PIN at the partition level config. 
+
+## Debugging
+Connectivity issues may manifest themselves in different ways. There are generally several common issues in connecting to your Envisalink device:
+
+- **Multiple clients connecting to Envisalink -** Only one socket connection is supported at a time. This is an Envisalink limitation. Disconnect any other devices, and restart Homebridge. If you need other devices connected, use the proxy feature provided by this plugin.
+- **Connectivity flakiness -** Ideally, both your Envisalink and your Homebridge should be on wired connections.
+- **IP Address Changes -** Your Envisalink should have a static or DHCP reserved private IP address within your home network.
+- **Password Issues -** Your configured password is incorrect.
+
+To troubleshoot, set `enableVerboseLogging` config to true. This should reveal actual error messages.
 
 ## Credits
 This plugin leverages [Node Alarm Proxy](https://www.npmjs.com/package/nodealarmproxy)
