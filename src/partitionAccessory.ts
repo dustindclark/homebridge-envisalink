@@ -5,6 +5,7 @@ import {MANUFACTURER, MODEL,} from './constants';
 import {Partition, PartitionMode} from "./types";
 
 const CHIME_SERVICE_NAME = 'Chime';
+const BYPASS_SERVICE_NAME = 'Bypass';
 
 /**
  * Platform Accessory
@@ -26,6 +27,7 @@ export class EnvisalinkPartitionAccessory {
         this.bindAccessoryDetails();
         this.bindSecurityPanel();
         this.bindChimeSwitch();
+        this.bindBypassSwitch();
     }
 
     bindAccessoryDetails() {
@@ -50,17 +52,34 @@ export class EnvisalinkPartitionAccessory {
             this.partition.chimeActive == undefined ? false : this.partition.chimeActive);
     }
 
+    bindBypassSwitch() {
+        const bypassService = this.accessory.getService(BYPASS_SERVICE_NAME) ||
+            this.accessory.addService(this.platform.Service.Switch, BYPASS_SERVICE_NAME, `${this.partition.number}-Bypass`);
+        bypassService.getCharacteristic(this.platform.Characteristic.On)
+            .onSet(this.setBypassActive.bind(this));
+        bypassService.updateCharacteristic(this.platform.Characteristic.On,
+            this.partition.bypassEnabled == undefined ? false : this.partition.bypassEnabled);
+    }
+
     async setChimeActive(value: CharacteristicValue) {
         try {
             this.platform.log.debug(`setChimeActive to ${value} for partition ${this.partition.number}`);
             await this.platform.sendAlarmCommand(`071${this.partition.number}*4`);
-            this.platform.log.debug(`setChimeActive complete.`);
+            this.platform.log.debug('setChimeActive complete.');
         } catch (error) {
             this.platform.log.error(`Failed setting chime active to ${value}`, error);
         }
     }
 
-
+    async setBypassActive(value: CharacteristicValue) {
+        try {
+            this.platform.log.debug(`setBypassActive to ${value} for partition ${this.partition.number}`);
+            this.partition.bypassEnabled = value as boolean;
+            this.platform.log.debug(`setBypassActive complete.`);
+        } catch (error) {
+            this.platform.log.error(`Failed setting setBypassActive active to ${value}`, error);
+        }
+    }
 
     bindSecurityPanel() {
         const service = this.accessory.getService(this.platform.Service.SecuritySystem)
@@ -71,6 +90,8 @@ export class EnvisalinkPartitionAccessory {
         let obstructionDetected = false;
         this.platform.log.info(`Partition ${this.partition.number}: ${this.partition.status.text}, ` +
           `mode: ${this.partition.status.mode}.`);
+
+        let arming = false;
         switch (this.partition.status.text) {
             case 'alarm':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.ALARM_TRIGGERED;
@@ -81,6 +102,7 @@ export class EnvisalinkPartitionAccessory {
                 break;
             case 'armed':
             case 'armedbypass':
+                arming = true;
                 if (PartitionMode.Stay === this.partition.status.mode) {
                     currentState = this.platform.Characteristic.SecuritySystemCurrentState.STAY_ARM;
                     targetState = this.platform.Characteristic.SecuritySystemTargetState.STAY_ARM;
@@ -115,8 +137,17 @@ export class EnvisalinkPartitionAccessory {
                 currentState);
         }
         if (targetState != undefined) {
-            service.updateCharacteristic(this.platform.Characteristic.SecuritySystemTargetState,
-                targetState);
+            if (arming && this.partition.bypassEnabled) {
+                const partitionState = targetState;
+                this.platform.bypassAllOpenZones(this.partition.number).then(() => {
+                    service.updateCharacteristic(this.platform.Characteristic.SecuritySystemTargetState,
+                        partitionState);
+                });
+            } else {
+                service.updateCharacteristic(this.platform.Characteristic.SecuritySystemTargetState,
+                    targetState);
+            }
+
         }
         service.updateCharacteristic(this.platform.Characteristic.ObstructionDetected,
             obstructionDetected);

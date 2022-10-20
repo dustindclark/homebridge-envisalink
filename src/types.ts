@@ -6,6 +6,8 @@ export enum ZoneType {
     Motion = "motion",
 }
 
+export const CONTACT_SENSORS = new Set([ZoneType.Door, ZoneType.Window]);
+
 //0: AWAY, 1: STAY, 2:  ZERO-ENTRY-AWAY, 3:  ZERO-ENTRY-STAY
 export enum PartitionMode {
     Away = "away",
@@ -45,6 +47,7 @@ export type Partition = {
     chimeCommand: string;
     pin?: string;
     chimeActive?: boolean;
+    bypassEnabled?: boolean;
 };
 
 export const ERROR_CODES: Map<string, string> = new Map([

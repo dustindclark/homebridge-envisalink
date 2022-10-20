@@ -18,7 +18,7 @@ import {
     transformZoneStatus,
     transformZoneStatuses
 } from "./util";
-import {ERROR_CODES, Partition, Zone} from "./types";
+import {CONTACT_SENSORS, ERROR_CODES, Partition, Zone} from "./types";
 import {EnvisalinkZoneAccessory} from "./zoneAccessory";
 import {EnvisalinkPartitionAccessory} from "./partitionAccessory";
 import {NodeAlarmProxy, PartitionUpdate, ZoneUpdate} from "./nodeAlarmProxyTypes";
@@ -224,6 +224,26 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         }
     }
 
+    async bypassAllOpenZones(partition: number) {
+        try {
+            let bypassedCount = 0;
+            for(const accessory of this.accessories.values()) {
+                if (accessory.context && Object.prototype.hasOwnProperty.call(accessory.context, 'type')) {
+                    const zone = accessory.context as Zone;
+                    if (zone.partition === partition && CONTACT_SENSORS.has(zone.type) && zone.status.text === 'open') {
+                        this.log.info(`Bypassing open zone: ${zone.name}`);
+                        const zoneString = String(zone.number).padStart(2, "0");
+                        await this.sendAlarmCommand(`071${partition}*1${zoneString}`);
+                        bypassedCount ++;
+                    }
+                }
+            }
+            this.log.info(`${bypassedCount} open zones were bypassed.`);
+        } catch (error) {
+            this.log.error('Failed to bypass open zones', error);
+        }
+    }
+
     updatePartitionAccessory(partition: Partition) {
         const uuid = this.api.hap.uuid.generate(`envisalink.${partition.number}`);
         let accessory = this.accessories[uuid];
@@ -234,6 +254,12 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
             // Restore chime status in case this update was unrelated to chime.
             if (partition.chimeActive == undefined) {
                 partition.chimeActive = previousChimeStatus;
+            }
+
+            const previousBypassEnabled: boolean | undefined = accessory.context?.bypassEnabled;
+            // Restore bypass enabled in case this update was unrelated to bypass.
+            if (partition.bypassEnabled == undefined) {
+                partition.bypassEnabled = previousBypassEnabled;
             }
             accessory.context = partition;
             this.api.updatePlatformAccessories([accessory]);
