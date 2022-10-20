@@ -83,7 +83,7 @@ export class EnvisalinkPartitionAccessory {
 
     async setBypassActive(value: CharacteristicValue) {
         try {
-            this.platform.log.debug(`setBypassActive to ${value} for partition ${this.partition.number}`);
+            this.platform.log.info(`setBypassActive to ${value as boolean} for partition ${this.partition.number}`);
             this.partition.bypassEnabled = value as boolean;
             this.platform.log.debug(`setBypassActive complete.`);
         } catch (error) {
@@ -99,9 +99,8 @@ export class EnvisalinkPartitionAccessory {
         let currentState: number | undefined = undefined;
         let obstructionDetected = false;
         this.platform.log.info(`Partition ${this.partition.number}: ${this.partition.status.text}, ` +
-          `mode: ${this.partition.status.mode}.`);
+            `mode: ${this.partition.status.mode}.`);
 
-        let arming = false;
         switch (this.partition.status.text) {
             case 'alarm':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.ALARM_TRIGGERED;
@@ -112,7 +111,6 @@ export class EnvisalinkPartitionAccessory {
                 break;
             case 'armed':
             case 'armedbypass':
-                arming = true;
                 if (PartitionMode.Stay === this.partition.status.mode) {
                     currentState = this.platform.Characteristic.SecuritySystemCurrentState.STAY_ARM;
                     targetState = this.platform.Characteristic.SecuritySystemTargetState.STAY_ARM;
@@ -147,16 +145,8 @@ export class EnvisalinkPartitionAccessory {
                 currentState);
         }
         if (targetState != undefined) {
-            if (arming && this.partition.bypassEnabled) {
-                const partitionState = targetState;
-                this.platform.bypassAllOpenZones(this.partition.number).then(() => {
-                    service.updateCharacteristic(this.platform.Characteristic.SecuritySystemTargetState,
-                        partitionState);
-                });
-            } else {
-                service.updateCharacteristic(this.platform.Characteristic.SecuritySystemTargetState,
-                    targetState);
-            }
+            service.updateCharacteristic(this.platform.Characteristic.SecuritySystemTargetState,
+                targetState);
 
         }
         service.updateCharacteristic(this.platform.Characteristic.ObstructionDetected,
@@ -169,9 +159,11 @@ export class EnvisalinkPartitionAccessory {
     async setPanelState(value: CharacteristicValue) {
         try {
             this.platform.log.debug(`setPanelState to ${value} for partition ${this.partition.number}`);
-            let command : string | undefined = undefined;
-            switch(value) {
+            let command: string | undefined = undefined;
+            let arming = true;
+            switch (value) {
                 case this.platform.Characteristic.SecuritySystemCurrentState.DISARMED:
+                    arming = false;
                     command = `040${this.partition.number}${this.partition.pin}`;
                     break;
                 case this.platform.Characteristic.SecuritySystemCurrentState.STAY_ARM:
@@ -188,6 +180,10 @@ export class EnvisalinkPartitionAccessory {
                 this.platform.log.error(`Unhandled alarm state ${value}. Ignoring command.`);
                 return;
             }
+            if (arming && this.partition.bypassEnabled) {
+                await this.platform.bypassAllOpenZones(this.partition.number);
+            }
+
             this.platform.setLastPartitionAction(this.partition);
             await this.platform.sendAlarmCommand(command);
             this.platform.log.debug(`Successfully set alarm panel state to ${value} on partition ${this.partition.number}`);

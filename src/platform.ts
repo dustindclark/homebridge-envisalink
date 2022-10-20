@@ -226,6 +226,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
 
     async bypassAllOpenZones(partition: number) {
         try {
+            this.log.info('Bypassing open zones.');
             let bypassedCount = 0;
             for(const accessory of this.accessories.values()) {
                 if (accessory.context && Object.prototype.hasOwnProperty.call(accessory.context, 'type')) {
