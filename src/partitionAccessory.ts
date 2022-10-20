@@ -44,11 +44,11 @@ export class EnvisalinkPartitionAccessory {
         if (!this.partition.enableChimeSwitch) {
             return false;
         }
-        const chimeService = this.accessory.getService(CHIME_SERVICE_NAME) ||
-            this.accessory.addService(this.platform.Service.Switch, CHIME_SERVICE_NAME, `${this.partition.number}-Chime`);
-        chimeService.displayName = CHIME_SERVICE_NAME;
-        chimeService.subtype = CHIME_SERVICE_NAME;
-        chimeService.setCharacteristic(this.platform.Characteristic.Name, CHIME_SERVICE_NAME);
+        let chimeService = this.accessory.getService(CHIME_SERVICE_NAME);
+        if (!chimeService) {
+            chimeService = new this.platform.Service.Switch(`${this.partition.name} ${CHIME_SERVICE_NAME}`, CHIME_SERVICE_NAME);
+            this.accessory.addService(chimeService);
+        }
         chimeService.getCharacteristic(this.platform.Characteristic.On)
             .onSet(this.setChimeActive.bind(this));
         chimeService.updateCharacteristic(this.platform.Characteristic.On,
@@ -56,11 +56,11 @@ export class EnvisalinkPartitionAccessory {
     }
 
     bindBypassSwitch() {
-        const bypassService = this.accessory.getService(BYPASS_SERVICE_NAME) ||
-            this.accessory.addService(this.platform.Service.Switch, BYPASS_SERVICE_NAME, `${this.partition.number}-Bypass`);
-        bypassService.displayName = BYPASS_SERVICE_NAME;
-        bypassService.subtype = BYPASS_SERVICE_NAME;
-        bypassService.setCharacteristic(this.platform.Characteristic.Name, BYPASS_SERVICE_NAME);
+        let bypassService = this.accessory.getService(BYPASS_SERVICE_NAME);
+        if (!bypassService) {
+            bypassService = new this.platform.Service.Switch(`${this.partition.name} ${BYPASS_SERVICE_NAME}`, BYPASS_SERVICE_NAME);
+            this.accessory.addService(bypassService);
+        }
         bypassService.getCharacteristic(this.platform.Characteristic.On)
             .onSet(this.setBypassActive.bind(this));
         bypassService.updateCharacteristic(this.platform.Characteristic.On,
