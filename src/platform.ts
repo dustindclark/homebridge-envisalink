@@ -234,7 +234,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
                     const zone = accessory.context as Zone;
                     if (zone.partition === partition && CONTACT_SENSORS.has(zone.type) && zone.status.text === 'open') {
                         this.log.info(`Bypassing open zone: ${zone.name}`);
-                        await this.sendAlarmCommand(`071${partition}*1${zone.number}`);
+                        await this.sendAlarmCommand(`071${partition}*1${zone.number}#`);
                         bypassedCount ++;
                     } else {
                         this.log.debug(`Zone ${zone.name} is either not a contact sensor or is closed`);
