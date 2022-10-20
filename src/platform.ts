@@ -18,7 +18,7 @@ import {
     transformZoneStatus,
     transformZoneStatuses
 } from "./util";
-import {Partition, Zone} from "./types";
+import {ERROR_CODES, Partition, Zone} from "./types";
 import {EnvisalinkZoneAccessory} from "./zoneAccessory";
 import {EnvisalinkPartitionAccessory} from "./partitionAccessory";
 import {NodeAlarmProxy, PartitionUpdate, ZoneUpdate} from "./nodeAlarmProxyTypes";
@@ -393,7 +393,8 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         await new Promise<void>((resolve, reject) => {
             nap.manualCommand(command, function (errorCode) {
                 if (errorCode) {
-                    reject(new Error(`Command ${command} resulted in ${errorCode} error from alarm`));
+                    const errorMessage = ERROR_CODES.get(errorCode);
+                    reject(new Error(`Command ${command} resulted in ${errorCode} error from alarm: ${errorMessage}`));
                 }
                 resolve();
             });

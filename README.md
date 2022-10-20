@@ -142,6 +142,7 @@ By default, all partitions use the same top level PIN. You can override this PIN
 ## Debugging
 Connectivity issues may manifest themselves in different ways. There are generally several common issues in connecting to your Envisalink device:
 
+### Connectivity Issues
 - **Multiple clients connecting to Envisalink -** Only one socket connection is supported at a time. This is an Envisalink limitation. Disconnect any other devices, and restart Homebridge. If you need other devices connected, use the proxy feature provided by this plugin.
 - **Connectivity flakiness -** Ideally, both your Envisalink and your Homebridge should be on wired connections.
 - **IP Address Changes -** Your Envisalink should have a static or DHCP reserved private IP address within your home network.
