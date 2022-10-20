@@ -18,8 +18,8 @@ export default {
     global: {
       branches: 40,
       functions: 15,
-      lines: 8,
-      statements: 8,
+      lines: 7,
+      statements: 7,
     },
   },
   preset: 'ts-jest',
