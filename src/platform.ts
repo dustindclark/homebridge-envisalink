@@ -283,12 +283,9 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
             // Super hacky, but toggle chime such that the initial status is reflected correctly.
             // Wait 10 seconds for initial system startup (i.e. time sync).
             this.sendAlarmCommand(partition.chimeCommand).then(() => {
-                // Give the panel a chance to process the command.
-                setTimeout(() => {
-                    this.sendAlarmCommand(partition.chimeCommand).then(() => {
-                        this.log.debug("Chime toggled twice successfully to fetch initial status.");
-                    }).catch(error => this.log.error("Second set chime failed while fetching status", error));
-                }, 2000);
+                this.sendAlarmCommand(partition.chimeCommand).then(() => {
+                    this.log.debug("Chime toggled twice successfully to fetch initial status.");
+                }).catch(error => this.log.error("Second set chime failed while fetching status", error));
 
             }).catch(error => this.log.error("First set chime failed while fetching status", error));
         }
@@ -428,7 +425,8 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
                     const errorMessage = ERROR_CODES.get(errorCode);
                     reject(new Error(`Command ${command} resulted in ${errorCode} error from alarm: ${errorMessage}`));
                 }
-                resolve();
+                // Still takes some time for the panel to process the command.
+                setTimeout(resolve, 750);
             });
         });
         this.log.debug(`Command ${command} succeeded.`);
