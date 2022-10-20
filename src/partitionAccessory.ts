@@ -46,7 +46,9 @@ export class EnvisalinkPartitionAccessory {
         }
         let chimeService = this.accessory.getService(CHIME_SERVICE_NAME);
         if (!chimeService) {
-            chimeService = new this.platform.Service.Switch(`${this.partition.name} ${CHIME_SERVICE_NAME}`, CHIME_SERVICE_NAME);
+            const displayName = `${this.partition.name} ${CHIME_SERVICE_NAME}`;
+            chimeService = new this.platform.Service.Switch(displayName, CHIME_SERVICE_NAME);
+            chimeService.setCharacteristic(this.platform.Characteristic.Name, displayName);
             this.accessory.addService(chimeService);
         }
         chimeService.getCharacteristic(this.platform.Characteristic.On)
@@ -58,7 +60,9 @@ export class EnvisalinkPartitionAccessory {
     bindBypassSwitch() {
         let bypassService = this.accessory.getService(BYPASS_SERVICE_NAME);
         if (!bypassService) {
-            bypassService = new this.platform.Service.Switch(`${this.partition.name} ${BYPASS_SERVICE_NAME}`, BYPASS_SERVICE_NAME);
+            const displayName = `${this.partition.name} ${BYPASS_SERVICE_NAME}`;
+            bypassService = new this.platform.Service.Switch(displayName, BYPASS_SERVICE_NAME);
+            bypassService.setCharacteristic(this.platform.Characteristic.Name, displayName);
             this.accessory.addService(bypassService);
         }
         bypassService.getCharacteristic(this.platform.Characteristic.On)
