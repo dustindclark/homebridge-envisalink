@@ -1,8 +1,8 @@
-import {Characteristic, CharacteristicValue, PlatformAccessory} from 'homebridge';
+import {CharacteristicValue, PlatformAccessory} from 'homebridge';
 
 import {EnvisalinkHomebridgePlatform} from './platform';
-import {MANUFACTURER, MODEL,} from './constants';
-import {Partition, PartitionMode} from "./types";
+import {MANUFACTURER, MODEL} from './constants';
+import {Partition, PartitionMode} from './types';
 
 const CHIME_SERVICE_NAME = 'Chime';
 const BYPASS_SERVICE_NAME = 'Bypass';
@@ -49,13 +49,13 @@ export class EnvisalinkPartitionAccessory {
             const displayName = `${this.partition.name} ${CHIME_SERVICE_NAME}`;
             chimeService = new this.platform.Service.Switch(displayName, CHIME_SERVICE_NAME);
             chimeService.setCharacteristic(this.platform.Characteristic.Name, displayName);
-            chimeService.setCharacteristic(this.platform.Characteristic.ServiceLabelIndex, index)
+            chimeService.setCharacteristic(this.platform.Characteristic.ServiceLabelIndex, index);
             this.accessory.addService(chimeService);
         }
         chimeService.getCharacteristic(this.platform.Characteristic.On)
             .onSet(this.setChimeActive.bind(this));
         chimeService.updateCharacteristic(this.platform.Characteristic.On,
-            this.partition.chimeActive == undefined ? false : this.partition.chimeActive);
+            this.partition.chimeActive === undefined ? false : this.partition.chimeActive);
     }
 
     bindBypassSwitch(index: number) {
@@ -64,14 +64,13 @@ export class EnvisalinkPartitionAccessory {
             const displayName = `${this.partition.name} ${BYPASS_SERVICE_NAME}`;
             bypassService = new this.platform.Service.Switch(displayName, BYPASS_SERVICE_NAME);
             bypassService.setCharacteristic(this.platform.Characteristic.Name, displayName);
-            bypassService.setCharacteristic(this.platform.Characteristic.Name, displayName)
-            bypassService.setCharacteristic(this.platform.Characteristic.ServiceLabelIndex, index)
+            bypassService.setCharacteristic(this.platform.Characteristic.ServiceLabelIndex, index);
             this.accessory.addService(bypassService);
         }
         bypassService.getCharacteristic(this.platform.Characteristic.On)
             .onSet(this.setBypassActive.bind(this));
         bypassService.updateCharacteristic(this.platform.Characteristic.On,
-            this.partition.bypassEnabled == undefined ? false : this.partition.bypassEnabled);
+            this.partition.bypassEnabled === undefined ? false : this.partition.bypassEnabled);
     }
 
     async setChimeActive(value: CharacteristicValue) {
@@ -88,7 +87,7 @@ export class EnvisalinkPartitionAccessory {
         try {
             this.platform.log.info(`setBypassActive to ${value as boolean} for partition ${this.partition.number}`);
             this.partition.bypassEnabled = value as boolean;
-            this.platform.log.debug(`setBypassActive complete.`);
+            this.platform.log.debug('setBypassActive complete.');
         } catch (error) {
             this.platform.log.error(`Failed setting setBypassActive active to ${value}`, error);
         }
@@ -143,11 +142,11 @@ export class EnvisalinkPartitionAccessory {
                 targetState = this.platform.Characteristic.SecuritySystemTargetState.DISARM;
         }
 
-        if (currentState != undefined) {
+        if (currentState !== undefined) {
             service.updateCharacteristic(this.platform.Characteristic.SecuritySystemCurrentState,
                 currentState);
         }
-        if (targetState != undefined) {
+        if (targetState !== undefined) {
             service.updateCharacteristic(this.platform.Characteristic.SecuritySystemTargetState,
                 targetState);
 
@@ -179,7 +178,7 @@ export class EnvisalinkPartitionAccessory {
                     command = `030${this.partition.number}`;
                     break;
             }
-            if (command == undefined) {
+            if (command === undefined) {
                 this.platform.log.error(`Unhandled alarm state ${value}. Ignoring command.`);
                 return;
             }

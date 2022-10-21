@@ -1,18 +1,14 @@
-import {PartitionUpdate, ZoneUpdate} from "./nodeAlarmProxyTypes";
+import {PartitionUpdate, ZoneUpdate} from './nodeAlarmProxyTypes';
 import envisalinkCodes = require('nodealarmproxy/envisalink.js');
-import {Partition, Zone} from "./types";
-import {PartitionConfig, ZoneConfig} from "./configTypes";
+import {EnvisalinkStatusCode, Partition, Zone} from './types';
+import {PartitionConfig, ZoneConfig} from './configTypes';
 
-enum ChimeStatus {
-    ChimeEnabled = "663",
-    ChimeDisabled = "664"
-}
 
 export const transformZoneStatuses = (zoneConfigs: Map<string, ZoneConfig>, zoneStatuses: Map<string, ZoneUpdate>): Map<number, Zone> => {
     return Array.from(zoneStatuses).reduce((map, [zoneNumberString, zoneUpdate]) => {
         const zoneNumber: number = +zoneNumberString;
         const zone = transformZoneStatus(zoneConfigs, zoneNumber, zoneUpdate);
-        if (zone != null) {
+        if (zone !== null) {
             map.set(zoneNumber, zone);
         }
         return map;
@@ -39,11 +35,12 @@ export const transformZoneStatus = (zoneConfigs: Map<string, ZoneConfig>, number
             text: detailedStatus.send,
             action: detailedStatus.action,
             verbSuffix: detailedStatus.post,
-        }
+        },
     };
 };
 
-export const transformPartitionStatuses = (partitionConfigs: ReadonlyArray<PartitionConfig>, partitionStatuses: Map<string, PartitionUpdate>): ReadonlyArray<Partition> => {
+export const transformPartitionStatuses = (partitionConfigs: ReadonlyArray<PartitionConfig>,
+    partitionStatuses: Map<string, PartitionUpdate>): ReadonlyArray<Partition> => {
     return Array.from(partitionStatuses).map(([numberString, partition]) => {
         const index: number = +numberString;
         return transformPartitionStatus(partitionConfigs, index, partition);
@@ -52,9 +49,12 @@ export const transformPartitionStatuses = (partitionConfigs: ReadonlyArray<Parti
 
 export const transformPartitionStatus = (partitionConfigs: ReadonlyArray<PartitionConfig>, number: number, partitionStatus: PartitionUpdate): Partition => {
     const partitionConfig = partitionConfigs[number - 1];
-    const statusCode = partitionStatus.code && partitionStatus.code.length > 2 ? partitionStatus.code.substring(0, 3) : partitionStatus.code;
+    const statusCode = partitionStatus.code && partitionStatus.code.length > 2 ? partitionStatus.code.substring(0, 3)
+        : partitionStatus.code;
     const detailedStatus = envisalinkCodes.tpicommands[statusCode];
-    const chimeEnabled: boolean | undefined = statusCode === ChimeStatus.ChimeEnabled ? true : statusCode === ChimeStatus.ChimeDisabled ? false : undefined;
+    const chimeEnabled: boolean | undefined = statusCode === EnvisalinkStatusCode.ChimeEnabled ? true
+        : statusCode === EnvisalinkStatusCode.ChimeDisabled ? false
+            : undefined;
     return {
         name: partitionConfig.name,
         number: number,
@@ -70,6 +70,6 @@ export const transformPartitionStatus = (partitionConfigs: ReadonlyArray<Partiti
             action: detailedStatus.action,
             verbSuffix: detailedStatus.post,
             mode: partitionStatus.armMode,
-        }
+        },
     };
 };

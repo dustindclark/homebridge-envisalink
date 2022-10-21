@@ -1,8 +1,8 @@
 import {CharacteristicValue, PlatformAccessory, Service} from 'homebridge';
 
 import {EnvisalinkHomebridgePlatform} from './platform';
-import {MANUFACTURER, MODEL,} from './constants';
-import {EnvisalinkConfig} from "./configTypes";
+import {MANUFACTURER, MODEL} from './constants';
+import {EnvisalinkConfig} from './configTypes';
 
 enum PanicType {
     Fire = 1,
@@ -59,7 +59,7 @@ export class EnvisalinkPanicAccessory {
                 this.platform.log.warn(`Activating panic alarm. Panic Type: ${PanicType[panicType]}`);
                 await this.platform.sendAlarmCommand(`060${panicType}`);
             } else if (panicType === PanicType.Fire) {
-                this.platform.log.warn(`Panic alarm switched off. Attempting disarm on partition 1.`);
+                this.platform.log.warn('Panic alarm switched off. Attempting disarm on partition 1.');
                 await this.platform.sendAlarmCommand(`0401${this.config.pin}`);
             } else {
                 this.platform.log.info('Ignoring disarm panic because only fire alarms can be disarmed.');

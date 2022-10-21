@@ -1,8 +1,8 @@
 import {PlatformAccessory, Service} from 'homebridge';
 
 import {EnvisalinkHomebridgePlatform} from './platform';
-import {MANUFACTURER, MODEL,} from './constants';
-import {Zone, ZoneType} from "./types";
+import {MANUFACTURER, MODEL} from './constants';
+import {Zone, ZoneType} from './types';
 
 /**
  * Platform Accessory

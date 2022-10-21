@@ -1,4 +1,4 @@
-import {PlatformConfig} from "homebridge";
+import {PlatformConfig} from 'homebridge';
 import {ZoneType} from './types';
 
 export type PartitionConfig = {
@@ -27,7 +27,7 @@ export type CustomCommandConfig = {
 export type EnvisalinkConfig = {
     host: string;
     password: string;
-    port: number,
+    port: number;
     proxyPort: number;
     pin: string;
     suppressZoneAccessories: boolean;

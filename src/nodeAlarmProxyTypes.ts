@@ -1,4 +1,4 @@
-import {PartitionMode} from "./types";
+import {PartitionMode} from './types';
 
 export type AreaUpdate = {
     send?: string;

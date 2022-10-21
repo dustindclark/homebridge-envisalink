@@ -1,19 +1,19 @@
 export enum ZoneType {
-    Door = "door",
-    Window = "window",
-    Leak = "leak",
-    Smoke = "smoke",
-    Motion = "motion",
+    Door = 'door',
+    Window = 'window',
+    Leak = 'leak',
+    Smoke = 'smoke',
+    Motion = 'motion',
 }
 
 export const CONTACT_SENSORS = new Set([ZoneType.Door, ZoneType.Window]);
 
 //0: AWAY, 1: STAY, 2:  ZERO-ENTRY-AWAY, 3:  ZERO-ENTRY-STAY
 export enum PartitionMode {
-    Away = "away",
-    Stay = "stay",
-    AwayZeroEntry = "zero-entry-away",
-    StayZeroEntry = "zero-entry-stay",
+    Away = 'away',
+    Stay = 'stay',
+    AwayZeroEntry = 'zero-entry-away',
+    StayZeroEntry = 'zero-entry-stay',
 }
 
 type Status = {
@@ -23,7 +23,7 @@ type Status = {
     text?: string; //restore
     action?: string; //updatezone
     verbSuffix?: string; //is restored.
-}
+};
 
 export type ZoneStatus = | Status;
 

@@ -16,7 +16,7 @@ import {
     transformPartitionStatus,
     transformPartitionStatuses,
     transformZoneStatus,
-    transformZoneStatuses
+    transformZoneStatuses,
 } from './util';
 import {CONTACT_SENSORS, EnvisalinkStatusCode, ERROR_CODES, Partition, PartitionStatus, Zone} from './types';
 import {EnvisalinkZoneAccessory} from './zoneAccessory';
@@ -62,17 +62,17 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         this.zoneConfigs = new Map();
 
         if (!co || !co.host || !co.password || !co.pin) {
-            this.log.warn("Platform will be skipped because config is missing host, password, and/or pin.");
+            this.log.warn('Platform will be skipped because config is missing host, password, and/or pin.');
             return;
         }
 
-        if (!co.partitions || co.partitions.length == 0) {
-            this.log.warn("Platform will be skipped partitions were not configured.");
+        if (!co.partitions || co.partitions.length === 0) {
+            this.log.warn('Platform will be skipped partitions were not configured.');
             return;
         }
 
-        if (!co.zones || co.zones.length == 0) {
-            this.log.warn("Platform will be skipped zones were not configured.");
+        if (!co.zones || co.zones.length === 0) {
+            this.log.warn('Platform will be skipped zones were not configured.');
             return;
         }
 
@@ -104,7 +104,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
                 // Wait for full initialization first
                 setTimeout(this.setTime.bind(this), 60000);
             } catch (error) {
-                this.log.error("Failed to initialize homebridge-envisalink.", error);
+                this.log.error('Failed to initialize homebridge-envisalink.', error);
                 return;
             }
         });
@@ -152,13 +152,13 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
             partition: partitionCount,
             proxyenable: proxyEnabled,
             atomicEvents: true,
-            logger: this.log
+            logger: this.log,
         };
         const nodeAlarm = nap.initConfig(alarmConfig);
         if (proxyEnabled) {
             this.log.info(`Node alarm proxy started.  Listening for connections at: ${alarmConfig.serverhost}:${alarmConfig.serverport}`);
         } else {
-            this.log.info(`Node alarm proxy started. Proxy is disabled`);
+            this.log.info('Node alarm proxy started. Proxy is disabled');
         }
         nodeAlarm.on('data', this.dataUpdate.bind(this));
         nodeAlarm.on('connecterror', this.resetConnection.bind(this));
@@ -171,7 +171,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
     }
 
     discoverCustomCommandAccessories() {
-        if (!this.getConfig().customCommands || this.getConfig().customCommands.length == 0) {
+        if (!this.getConfig().customCommands || this.getConfig().customCommands.length === 0) {
             this.log.debug('No custom commands configured.');
             return;
         }
@@ -199,7 +199,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
             this.log.info('Panic buttons disabled. Will not install panic switches.');
             return;
         }
-        const uuid = this.api.hap.uuid.generate(`envisalink.panic`);
+        const uuid = this.api.hap.uuid.generate('envisalink.panic');
         let accessory = this.accessories.get(uuid);
         if (accessory) {
             this.log.debug('Restoring existing panic accessory from cache:', accessory.displayName);
@@ -217,13 +217,13 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
     async setTime() {
         if (!this.getConfig().suppressClockReset) {
             try {
-                const date = dateFormat(new Date(), "HHMMmmddyy");
-                this.log.info("Setting the current time on the alarm system to: " + date);
+                const date = dateFormat(new Date(), 'HHMMmmddyy');
+                this.log.debug(`Setting the current time on the alarm system to: ${date}`);
 
                 await this.sendAlarmCommand(`010${date}`);
-                this.log.info("Time set successfully");
+                this.log.debug('Time set successfully');
             } catch (error) {
-                this.log.error(`Error setting time:`, error);
+                this.log.error('Error setting time', error);
             }
             // Once per hour.
             setTimeout(this.setTime.bind(this), 60 * 60 * 1000);
@@ -290,13 +290,13 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
             this.log.debug('Restoring existing partition accessory from cache:', accessory.displayName);
             const previousChimeStatus: boolean | undefined = accessory.context?.chimeActive;
             // Restore chime status in case this update was unrelated to chime.
-            if (partition.chimeActive == undefined) {
+            if (partition.chimeActive === undefined) {
                 partition.chimeActive = previousChimeStatus;
             }
 
             const previousBypassEnabled: boolean | undefined = accessory.context?.bypassEnabled;
             // Restore bypass enabled in case this update was unrelated to bypass.
-            if (partition.bypassEnabled == undefined) {
+            if (partition.bypassEnabled === undefined) {
                 partition.bypassEnabled = previousBypassEnabled;
             }
             accessory.context = partition;
@@ -318,10 +318,10 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
             const waitForStatusCodes = new Set([EnvisalinkStatusCode.ChimeEnabled, EnvisalinkStatusCode.ChimeDisabled]);
             this.sendAlarmCommand(partition.chimeCommand, partition.number, waitForStatusCodes).then(() => {
                 this.sendAlarmCommand(partition.chimeCommand, partition.number, waitForStatusCodes).then(() => {
-                    this.log.debug("Chime toggled twice successfully to fetch initial status.");
-                }).catch(error => this.log.error("Second set chime failed while fetching status", error));
+                    this.log.debug('Chime toggled twice successfully to fetch initial status.');
+                }).catch(error => this.log.error('Second set chime failed while fetching status', error));
 
-            }).catch(error => this.log.error("First set chime failed while fetching status", error));
+            }).catch(error => this.log.error('First set chime failed while fetching status', error));
         }
     }
 
@@ -380,7 +380,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
     setPartitionStatus(partitionNumber: number, statusCode: string) {
         this.log.debug(`Forcing partition status to ${statusCode}: ${envisalinkCodes.tpicommands[statusCode].name}`);
         const partition = transformPartitionStatus(this.getConfig().partitions, partitionNumber, {
-            code: statusCode
+            code: statusCode,
         });
         this.updatePartitionAccessory(partition);
     }
@@ -405,7 +405,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
                 this.log.debug(`Inside zoneUpdate: ${this.json(data)}`);
             }
             const zone = transformZoneStatus(this.zoneConfigs, data.zone, data);
-            if (zone == null) {
+            if (zone === null) {
                 this.log.debug(`Zone ${data.zone} returned null because of missing config. Assuming non-consecutive zones.`);
                 return;
             }
@@ -433,17 +433,17 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
     async codeRequired() {
         try {
             if (this.getConfig().enableVerboseLogging) {
-                this.log.debug(`Inside codeRequired.`);
+                this.log.debug('Inside codeRequired.');
             }
             if (!this.lastPartitionAction) {
-                this.log.error(`Can't handle pin request from panel because last partition is null. ` +
-                    `Previous command will be ignored.`);
+                this.log.error('Can\'t handle pin request from panel because last partition is null. ' +
+                    'Previous command will be ignored.');
                 return;
             }
-            this.log.info(`Panel has requested code (900 response). Sending PIN...`);
+            this.log.info('Panel has requested code (900 response). Sending PIN...');
             await this.sendAlarmCommand(`200${this.lastPartitionAction.pin}`);
         } catch (error) {
-            this.log.error(`Caught error in codeRequired.`, error);
+            this.log.error('Caught error in codeRequired.', error);
         }
     }
 

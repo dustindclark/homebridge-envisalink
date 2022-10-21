@@ -1,7 +1,7 @@
 import {CharacteristicValue, PlatformAccessory, Service} from 'homebridge';
 
 import {EnvisalinkHomebridgePlatform} from './platform';
-import {MANUFACTURER, MODEL,} from './constants';
+import {MANUFACTURER, MODEL} from './constants';
 
 /**
  * Platform Accessory
