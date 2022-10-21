@@ -378,7 +378,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
     }
 
     setPartitionStatus(partitionNumber: number, statusCode: string) {
-        this.log.debug(`Forcing partition status to ${statusCode}: ${envisalinkCodes.tpicommands[statusCode].name}`)
+        this.log.debug(`Forcing partition status to ${statusCode}: ${envisalinkCodes.tpicommands[statusCode].name}`);
         const partition = transformPartitionStatus(this.getConfig().partitions, partitionNumber, {
             code: statusCode
         });
