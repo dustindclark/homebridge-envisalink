@@ -9,24 +9,29 @@ import {
 } from 'homebridge';
 
 import nap = require('nodealarmproxy');
-import dateFormat from "dateformat";
+import dateFormat from 'dateformat';
 import {PLATFORM_NAME, PLUGIN_NAME} from './settings';
-import {EnvisalinkConfig, ZoneConfig} from "./configTypes";
+import {EnvisalinkConfig, ZoneConfig} from './configTypes';
 import {
     transformPartitionStatus,
     transformPartitionStatuses,
     transformZoneStatus,
     transformZoneStatuses
-} from "./util";
-import {CONTACT_SENSORS, ERROR_CODES, Partition, Zone} from "./types";
-import {EnvisalinkZoneAccessory} from "./zoneAccessory";
-import {EnvisalinkPartitionAccessory} from "./partitionAccessory";
-import {NodeAlarmProxy, PartitionUpdate, ZoneUpdate} from "./nodeAlarmProxyTypes";
-import {EnvisalinkPanicAccessory} from "./panicAccessory";
-import {EnvisalinkCustomCommandAccessory} from "./customCommandAccessory";
+} from './util';
+import {CONTACT_SENSORS, EnvisalinkStatusCode, ERROR_CODES, Partition, PartitionStatus, Zone} from './types';
+import {EnvisalinkZoneAccessory} from './zoneAccessory';
+import {EnvisalinkPartitionAccessory} from './partitionAccessory';
+import {NodeAlarmProxy, PartitionUpdate, ZoneUpdate} from './nodeAlarmProxyTypes';
+import {EnvisalinkPanicAccessory} from './panicAccessory';
+import {EnvisalinkCustomCommandAccessory} from './customCommandAccessory';
+import envisalinkCodes = require('nodealarmproxy/envisalink.js');
+import * as util from 'util';
 
-const MILLIS_BETWEEN_COMMANDS = 2000;
+const MILLIS_BETWEEN_WAIT = 100;
+const MILLIS_MAX_WAIT = 30000;
 const MILLIS_BETWEEN_RECONNECTS = 60000;
+
+const promisifiedNapCommand = util.promisify(nap.manualCommand);
 
 /**
  * HomebridgePlatform
@@ -245,28 +250,36 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
 
     async bypassAllOpenZones(partition: number) {
         try {
-            this.log.info(`Bypassing open zones in partition: ${partition}. Checking ${this.accessories.size} accessories.`);
+            this.log.debug(`Bypassing open zones in partition: ${partition}. Checking ${this.accessories.size} accessories.`);
             let bypassedCount = 0;
             for (const accessory of this.accessories.values()) {
                 if (accessory.context && Object.prototype.hasOwnProperty.call(accessory.context, 'type')) {
-                    this.log.debug(`Accessory ${accessory.displayName} is a zone.`);
                     const zone = accessory.context as Zone;
                     if (zone.partition === partition && CONTACT_SENSORS.has(zone.type) && zone.status.text === 'open') {
                         this.log.info(`Bypassing open zone: ${zone.name}`);
                         const zoneString = String(zone.number).padStart(2, '0');
-                        await this.sendAlarmCommand(`071${partition}*1${zoneString}#`);
+                        await this.sendAlarmCommand(`071${partition}*1${zoneString}#`, partition);
                         bypassedCount++;
-                    } else {
-                        this.log.debug(`Zone ${zone.name} is either not a contact sensor or is closed`);
                     }
-                } else {
-                    this.log.debug(`Accessory ${accessory.displayName} is not a zone.`);
                 }
             }
             this.log.info(`${bypassedCount} open zones were bypassed.`);
         } catch (error) {
             this.log.error('Failed to bypass open zones', error);
         }
+    }
+
+    getPartitionStatus(partitionNumber: number): PartitionStatus {
+        for (const accessory of this.accessories.values()) {
+            //Hack.
+            if (accessory.context && Object.prototype.hasOwnProperty.call(accessory.context, 'enableChimeSwitch')) {
+                const partition = accessory.context as Partition;
+                if (partition.number === partitionNumber) {
+                    return partition.status;
+                }
+            }
+        }
+        throw new Error(`Could not find partition: ${partitionNumber}`);
     }
 
     updatePartitionAccessory(partition: Partition) {
@@ -300,9 +313,11 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         if (partition.enableChimeSwitch && !this.chimeInitialized) {
             this.chimeInitialized = true;
             // Super hacky, but toggle chime such that the initial status is reflected correctly.
-            // Wait 10 seconds for initial system startup (i.e. time sync).
-            this.sendAlarmCommand(partition.chimeCommand).then(() => {
-                this.sendAlarmCommand(partition.chimeCommand).then(() => {
+            // Wait 10 seconds for initial system startup (i.e. time sync)
+
+            const waitForStatusCodes = new Set([EnvisalinkStatusCode.ChimeEnabled, EnvisalinkStatusCode.ChimeDisabled]);
+            this.sendAlarmCommand(partition.chimeCommand, partition.number, waitForStatusCodes).then(() => {
+                this.sendAlarmCommand(partition.chimeCommand, partition.number, waitForStatusCodes).then(() => {
                     this.log.debug("Chime toggled twice successfully to fetch initial status.");
                 }).catch(error => this.log.error("Second set chime failed while fetching status", error));
 
@@ -360,6 +375,14 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         } catch (error) {
             this.log.error(`Caught error in partitionUpdate. Data: ${this.json(data)}`, error);
         }
+    }
+
+    setPartitionStatus(partitionNumber: number, statusCode: string) {
+        this.log.debug(`Forcing partition status to ${statusCode}: ${envisalinkCodes.tpicommands[statusCode].name}`)
+        const partition = transformPartitionStatus(this.getConfig().partitions, partitionNumber, {
+            code: statusCode
+        });
+        this.updatePartitionAccessory(partition);
     }
 
     partitionUserUpdate(data) {
@@ -436,22 +459,36 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         this.lastPartitionAction = partition;
     }
 
-    public sendAlarmCommand(command: string): Promise<void> {
-        this.log.debug(`Sending command to NAP ${command}`);
+    public sleep(millis: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, millis));
+    }
 
-        return new Promise<void>((resolve, reject) => {
-            nap.manualCommand(command, (errorCode) => {
-                if (errorCode) {
-                    const errorMessage = ERROR_CODES.get(errorCode);
-                    reject(new Error(`Command ${command} resulted in ${errorCode} error from alarm: ${errorMessage}`));
-                }
-                this.log.debug(`Command ${command} succeeded. Waiting for ${MILLIS_BETWEEN_COMMANDS} millis.`);
-                // Still takes some time for the panel to process the command.
-                setTimeout(() => {
-                    this.log.debug("Resolved.");
-                    resolve();
-                }, MILLIS_BETWEEN_COMMANDS);
-            });
-        });
+    public async sendAlarmCommand(command: string, waitForReadyPartition?: number, waitForStatusCodes?: Set<string>): Promise<void> {
+        if (waitForReadyPartition) {
+            // Force to busy.
+            this.setPartitionStatus(waitForReadyPartition, EnvisalinkStatusCode.Busy);
+        }
+        this.log.debug(`Sending command to NAP ${command}`);
+        try {
+            await promisifiedNapCommand(command);
+        } catch (err) {
+            const errorMessage = ERROR_CODES.get(err as string);
+            throw new Error(`Command ${command} resulted in error from alarm: ${err}: ${errorMessage}`);
+        }
+        if (waitForReadyPartition) {
+            let status = this.getPartitionStatus(waitForReadyPartition).shortCode;
+            this.log.debug(`Command ${command} succeeded. Waiting until partition is ready. Current: ${status}`);
+            let totalSleepTime = 0;
+            while(MILLIS_MAX_WAIT > totalSleepTime && (waitForStatusCodes ? !waitForStatusCodes.has(status) : status === EnvisalinkStatusCode.Busy)) {
+                this.log.debug(`Partition still ${this.getPartitionStatus(waitForReadyPartition).shortCode}. ` +
+                    `Waiting for ${(waitForStatusCodes ? Array.from(waitForStatusCodes).join(',') : EnvisalinkStatusCode.Busy)}`);
+                totalSleepTime += MILLIS_BETWEEN_WAIT;
+                await this.sleep(MILLIS_BETWEEN_WAIT);
+                status = this.getPartitionStatus(waitForReadyPartition).shortCode;
+            }
+            this.log.debug(`Partition status is ${status} after wait. Continuing.`);
+        } else {
+            this.log.debug(`Command ${command} succeeded.`);
+        }
     }
 }

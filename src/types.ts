@@ -73,3 +73,11 @@ export const ERROR_CODES: Map<string, string> = new Map([
     ['026', 'API User Code not Required'],
     ['027', 'API Invalid Characters in Command (no alpha characters are allowed except for checksum)'],
 ]);
+
+export enum EnvisalinkStatusCode {
+    Busy = '673',
+    ChimeEnabled = '663',
+    ChimeDisabled = '664',
+    Ready = '650',
+    NotReady = '651',
+}
