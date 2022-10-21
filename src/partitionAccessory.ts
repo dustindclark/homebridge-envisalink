@@ -146,7 +146,7 @@ export class EnvisalinkPartitionAccessory {
             service.updateCharacteristic(this.platform.Characteristic.SecuritySystemCurrentState,
                 currentState);
         }
-        if (targetState !== undefined) {
+        if (targetState !== undefined && targetState !== currentState) {
             service.updateCharacteristic(this.platform.Characteristic.SecuritySystemTargetState,
                 targetState);
 
