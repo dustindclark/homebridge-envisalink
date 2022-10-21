@@ -25,7 +25,7 @@ import {NodeAlarmProxy, PartitionUpdate, ZoneUpdate} from "./nodeAlarmProxyTypes
 import {EnvisalinkPanicAccessory} from "./panicAccessory";
 import {EnvisalinkCustomCommandAccessory} from "./customCommandAccessory";
 
-const MILLIS_BETWEEN_COMMANDS = 750;
+const MILLIS_BETWEEN_COMMANDS = 2000;
 const MILLIS_BETWEEN_RECONNECTS = 60000;
 
 /**
@@ -247,7 +247,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         try {
             this.log.info(`Bypassing open zones in partition: ${partition}. Checking ${this.accessories.size} accessories.`);
             let bypassedCount = 0;
-            for(const accessory of this.accessories.values()) {
+            for (const accessory of this.accessories.values()) {
                 if (accessory.context && Object.prototype.hasOwnProperty.call(accessory.context, 'type')) {
                     this.log.debug(`Accessory ${accessory.displayName} is a zone.`);
                     const zone = accessory.context as Zone;
@@ -255,7 +255,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
                         this.log.info(`Bypassing open zone: ${zone.name}`);
                         const zoneString = String(zone.number).padStart(2, '0');
                         await this.sendAlarmCommand(`071${partition}*1${zoneString}#`);
-                        bypassedCount ++;
+                        bypassedCount++;
                     } else {
                         this.log.debug(`Zone ${zone.name} is either not a contact sensor or is closed`);
                     }
@@ -436,15 +436,22 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         this.lastPartitionAction = partition;
     }
 
-    public async sendAlarmCommand(command: string): Promise<void> {
+    public sendAlarmCommand(command: string): Promise<void> {
         this.log.debug(`Sending command to NAP ${command}`);
-        const errorCode = await nap.manualCommand(command);
-        if (errorCode) {
-            const errorMessage = ERROR_CODES.get(errorCode);
-            throw new Error(`Command ${command} resulted in ${errorCode} error from alarm: ${errorMessage}`);
-        }
-        this.log.debug(`Command ${command} succeeded. Waiting for ${MILLIS_BETWEEN_COMMANDS} millis`);
-        // Still takes some time for the panel to process the command.
-        await new Promise(f => setTimeout(f, MILLIS_BETWEEN_COMMANDS));
+
+        return new Promise<void>((resolve, reject) => {
+            nap.manualCommand(command, (errorCode) => {
+                if (errorCode) {
+                    const errorMessage = ERROR_CODES.get(errorCode);
+                    reject(new Error(`Command ${command} resulted in ${errorCode} error from alarm: ${errorMessage}`));
+                }
+                this.log.debug(`Command ${command} succeeded. Waiting for ${MILLIS_BETWEEN_COMMANDS} millis.`);
+                // Still takes some time for the panel to process the command.
+                setTimeout(() => {
+                    this.log.debug("Resolved.");
+                    resolve();
+                }, MILLIS_BETWEEN_COMMANDS);
+            });
+        });
     }
 }
