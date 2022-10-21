@@ -426,7 +426,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
                     reject(new Error(`Command ${command} resulted in ${errorCode} error from alarm: ${errorMessage}`));
                 }
                 // Still takes some time for the panel to process the command.
-                setTimeout(resolve, 1250);
+                setTimeout(resolve, 2000);
             });
         });
         this.log.debug(`Command ${command} succeeded.`);
