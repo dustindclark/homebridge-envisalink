@@ -1,4 +1,4 @@
-import {CharacteristicValue, PlatformAccessory} from 'homebridge';
+import {CharacteristicValue, PlatformAccessory, Service} from 'homebridge';
 
 import {EnvisalinkHomebridgePlatform} from './platform';
 import {MANUFACTURER, MODEL} from './constants';
@@ -145,11 +145,6 @@ export class EnvisalinkPartitionAccessory {
         if (currentState !== undefined) {
             service.updateCharacteristic(this.platform.Characteristic.SecuritySystemCurrentState,
                 currentState);
-        }
-        if (targetState !== undefined && targetState !== currentState) {
-            service.updateCharacteristic(this.platform.Characteristic.SecuritySystemTargetState,
-                targetState);
-
         }
         service.updateCharacteristic(this.platform.Characteristic.ObstructionDetected,
             obstructionDetected);
