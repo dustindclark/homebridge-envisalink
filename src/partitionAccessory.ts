@@ -1,4 +1,4 @@
-import {CharacteristicValue, PlatformAccessory, Service} from 'homebridge';
+import {CharacteristicValue, PlatformAccessory} from 'homebridge';
 
 import {EnvisalinkHomebridgePlatform} from './platform';
 import {MANUFACTURER, MODEL} from './constants';
@@ -97,7 +97,6 @@ export class EnvisalinkPartitionAccessory {
         const service = this.accessory.getService(this.platform.Service.SecuritySystem)
             || this.accessory.addService(this.platform.Service.SecuritySystem);
         service.setCharacteristic(this.platform.Characteristic.Name, this.partition.name);
-        let targetState: number | undefined = undefined;
         let currentState: number | undefined = undefined;
         let obstructionDetected = false;
         this.platform.log.info(`Partition ${this.partition.number}: ${this.partition.status.text}, ` +
@@ -109,19 +108,18 @@ export class EnvisalinkPartitionAccessory {
                 break;
             case 'partialclosing':
             case 'specialclosing':
+            case 'chimedisabled':
+            case 'chimeenabled':
                 this.platform.log.info(`Ignoring status ${this.partition.status.text}. Waiting for armed/armedbypass`);
                 break;
             case 'armed':
             case 'armedbypass':
                 if (PartitionMode.Stay === this.partition.status.mode) {
                     currentState = this.platform.Characteristic.SecuritySystemCurrentState.STAY_ARM;
-                    targetState = this.platform.Characteristic.SecuritySystemTargetState.STAY_ARM;
                 } else if (PartitionMode.StayZeroEntry === this.partition.status.mode) {
                     currentState = this.platform.Characteristic.SecuritySystemCurrentState.NIGHT_ARM;
-                    targetState = this.platform.Characteristic.SecuritySystemTargetState.NIGHT_ARM;
                 } else {
                     currentState = this.platform.Characteristic.SecuritySystemCurrentState.AWAY_ARM;
-                    targetState = this.platform.Characteristic.SecuritySystemTargetState.AWAY_ARM;
                 }
                 break;
             case 'disarmed':
@@ -129,7 +127,6 @@ export class EnvisalinkPartitionAccessory {
             case 'failedarm':
             case 'useropening':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.DISARMED;
-                targetState = this.platform.Characteristic.SecuritySystemTargetState.DISARM;
                 obstructionDetected = true;
                 break;
             case 'exitdelay':
@@ -139,7 +136,6 @@ export class EnvisalinkPartitionAccessory {
                 break;
             default:
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.DISARMED;
-                targetState = this.platform.Characteristic.SecuritySystemTargetState.DISARM;
         }
 
         if (currentState !== undefined) {
