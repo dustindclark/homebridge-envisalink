@@ -119,6 +119,9 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         this.accessories.set(accessory.UUID, accessory);
     }
 
+    async handleDisconnect() {
+        this.resetConnection(new Error('Unknown disconnect occurred.'));
+    }
 
     async resetConnection(err) {
         try {
@@ -162,6 +165,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         }
         nodeAlarm.on('data', this.dataUpdate.bind(this));
         nodeAlarm.on('connecterror', this.resetConnection.bind(this));
+        nodeAlarm.on('connectionended', this.handleDisconnect.bind(this));
         nodeAlarm.on('zoneupdate', this.zoneUpdate.bind(this));
         nodeAlarm.on('partitionupdate', this.partitionUpdate.bind(this));
         nodeAlarm.on('partitionuserupdate', this.partitionUserUpdate.bind(this));
