@@ -419,16 +419,16 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
 
     public async sendAlarmCommand(command: string): Promise<void> {
         this.log.debug(`Sending command to NAP ${command}`);
-        await new Promise<void>((resolve, reject) => {
-            nap.manualCommand(command, function (errorCode) {
+        return new Promise<void>((resolve, reject) => {
+            nap.manualCommand(command, (errorCode) => {
                 if (errorCode) {
                     const errorMessage = ERROR_CODES.get(errorCode);
                     reject(new Error(`Command ${command} resulted in ${errorCode} error from alarm: ${errorMessage}`));
                 }
+                this.log.debug(`Command ${command} succeeded. Waiting for 1s.`);
                 // Still takes some time for the panel to process the command.
-                setTimeout(resolve, 2000);
+                setTimeout(resolve, 1000);
             });
         });
-        this.log.debug(`Command ${command} succeeded.`);
     }
 }
