@@ -25,6 +25,8 @@ import {NodeAlarmProxy, PartitionUpdate, ZoneUpdate} from "./nodeAlarmProxyTypes
 import {EnvisalinkPanicAccessory} from "./panicAccessory";
 import {EnvisalinkCustomCommandAccessory} from "./customCommandAccessory";
 
+const MILLIS_BETWEEN_COMMANDS = 750;
+
 /**
  * HomebridgePlatform
  * This class is the main constructor for your plugin, this is where you should
@@ -419,16 +421,13 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
 
     public async sendAlarmCommand(command: string): Promise<void> {
         this.log.debug(`Sending command to NAP ${command}`);
-        return new Promise<void>((resolve, reject) => {
-            nap.manualCommand(command, (errorCode) => {
-                if (errorCode) {
-                    const errorMessage = ERROR_CODES.get(errorCode);
-                    reject(new Error(`Command ${command} resulted in ${errorCode} error from alarm: ${errorMessage}`));
-                }
-                this.log.debug(`Command ${command} succeeded. Waiting for 1s.`);
-                // Still takes some time for the panel to process the command.
-                setTimeout(resolve, 1000);
-            });
-        });
+        const errorCode = await nap.manualCommand(command);
+        if (errorCode) {
+            const errorMessage = ERROR_CODES.get(errorCode);
+            throw new Error(`Command ${command} resulted in ${errorCode} error from alarm: ${errorMessage}`);
+        }
+        this.log.debug(`Command ${command} succeeded. Waiting for ${MILLIS_BETWEEN_COMMANDS} millis`);
+        // Still takes some time for the panel to process the command.
+        await new Promise(f => setTimeout(f, MILLIS_BETWEEN_COMMANDS));
     }
 }
