@@ -26,6 +26,7 @@ import {EnvisalinkPanicAccessory} from "./panicAccessory";
 import {EnvisalinkCustomCommandAccessory} from "./customCommandAccessory";
 
 const MILLIS_BETWEEN_COMMANDS = 750;
+const MILLIS_BETWEEN_RECONNECTS = 60000;
 
 /**
  * HomebridgePlatform
@@ -74,16 +75,13 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         // Dynamic Platform plugins should only register new accessories after this event was fired,
         // in order to ensure they weren't added to homebridge already. This event can also be used
         // to start discovery of new accessories.
-        this.api.on('didFinishLaunching', () => {
+        this.api.on('didFinishLaunching', async () => {
             log.debug('Executed didFinishLaunching callback');
 
             this.log.info(`Configuring Envisalink platform,  Host: ${co.host} Port: ${co.port}`);
 
             try {
-                const maxZoneNumber = Math.max(...co.zones.map((zone) => {
-                    return zone.zoneNumber || -1;
-                }));
-                this.alarm = this.initializeNodeAlarmProxy(co.partitions.length, Math.max(maxZoneNumber, co.zones.length));
+                await this.resetConnection(null);
                 let increment = 0;
                 this.zoneConfigs = co.zones.reduce((map, zoneConfig) => {
                     increment++;
@@ -116,7 +114,25 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         this.accessories.set(accessory.UUID, accessory);
     }
 
-    initializeNodeAlarmProxy(partitionCount: number, zoneCount: number): NodeAlarmProxy {
+
+    async resetConnection(err) {
+        try {
+            this.log.info('Attempting connect to Envisalink..');
+            if (err) {
+                this.log.error(`Caught connection error. Sleeping ${MILLIS_BETWEEN_RECONNECTS / 1000} seconds and trying again. `, err);
+                await new Promise(f => setTimeout(f, MILLIS_BETWEEN_RECONNECTS));
+            }
+            const co = this.getConfig();
+            const maxZoneNumber = Math.max(...co.zones.map((zone) => {
+                return zone.zoneNumber || -1;
+            }));
+            this.alarm = this.initializeNodeAlarmProxy(co.partitions.length, Math.max(maxZoneNumber, co.zones.length));
+        } catch (e) {
+            this.log.error('Fatal error in reset connection', e);
+        }
+    }
+
+    initializeNodeAlarmProxy(partitionCount: number, zoneCount: number) {
         const co = this.getConfig();
         const proxyEnabled = !!co.proxyPort;
         const alarmConfig = {
@@ -140,6 +156,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
             this.log.info(`Node alarm proxy started. Proxy is disabled`);
         }
         nodeAlarm.on('data', this.dataUpdate.bind(this));
+        nodeAlarm.on('connecterror', this.resetConnection.bind(this));
         nodeAlarm.on('zoneupdate', this.zoneUpdate.bind(this));
         nodeAlarm.on('partitionupdate', this.partitionUpdate.bind(this));
         nodeAlarm.on('partitionuserupdate', this.partitionUserUpdate.bind(this));
@@ -390,7 +407,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
         }
     }
 
-    codeRequired() {
+    async codeRequired() {
         try {
             if (this.getConfig().enableVerboseLogging) {
                 this.log.debug(`Inside codeRequired.`);
@@ -401,7 +418,7 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
                 return;
             }
             this.log.info(`Panel has requested code (900 response). Sending PIN...`);
-            this.sendAlarmCommand(`200${this.lastPartitionAction.pin}`);
+            await this.sendAlarmCommand(`200${this.lastPartitionAction.pin}`);
         } catch (error) {
             this.log.error(`Caught error in codeRequired.`, error);
         }
