@@ -1,4 +1,4 @@
-import {CharacteristicValue, PlatformAccessory} from 'homebridge';
+import {Characteristic, CharacteristicValue, PlatformAccessory} from 'homebridge';
 
 import {EnvisalinkHomebridgePlatform} from './platform';
 import {MANUFACTURER, MODEL,} from './constants';
@@ -26,8 +26,8 @@ export class EnvisalinkPartitionAccessory {
 
         this.bindAccessoryDetails();
         this.bindSecurityPanel();
-        this.bindChimeSwitch();
-        this.bindBypassSwitch();
+        this.bindBypassSwitch(1);
+        this.bindChimeSwitch(2);
     }
 
     bindAccessoryDetails() {
@@ -40,7 +40,7 @@ export class EnvisalinkPartitionAccessory {
         }
     }
 
-    bindChimeSwitch() {
+    bindChimeSwitch(index: number) {
         if (!this.partition.enableChimeSwitch) {
             return false;
         }
@@ -49,6 +49,7 @@ export class EnvisalinkPartitionAccessory {
             const displayName = `${this.partition.name} ${CHIME_SERVICE_NAME}`;
             chimeService = new this.platform.Service.Switch(displayName, CHIME_SERVICE_NAME);
             chimeService.setCharacteristic(this.platform.Characteristic.Name, displayName);
+            chimeService.setCharacteristic(this.platform.Characteristic.ServiceLabelIndex, index)
             this.accessory.addService(chimeService);
         }
         chimeService.getCharacteristic(this.platform.Characteristic.On)
@@ -57,12 +58,14 @@ export class EnvisalinkPartitionAccessory {
             this.partition.chimeActive == undefined ? false : this.partition.chimeActive);
     }
 
-    bindBypassSwitch() {
+    bindBypassSwitch(index: number) {
         let bypassService = this.accessory.getService(BYPASS_SERVICE_NAME);
         if (!bypassService) {
             const displayName = `${this.partition.name} ${BYPASS_SERVICE_NAME}`;
             bypassService = new this.platform.Service.Switch(displayName, BYPASS_SERVICE_NAME);
             bypassService.setCharacteristic(this.platform.Characteristic.Name, displayName);
+            bypassService.setCharacteristic(this.platform.Characteristic.Name, displayName)
+            bypassService.setCharacteristic(this.platform.Characteristic.ServiceLabelIndex, index)
             this.accessory.addService(bypassService);
         }
         bypassService.getCharacteristic(this.platform.Characteristic.On)
