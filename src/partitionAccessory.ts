@@ -99,7 +99,7 @@ export class EnvisalinkPartitionAccessory {
         service.setCharacteristic(this.platform.Characteristic.Name, this.partition.name);
         let currentState: number | undefined = undefined;
         let obstructionDetected = false;
-        this.platform.log.info(`Partition ${this.partition.number}: ${this.partition.status.text}, ` +
+        this.platform.log.debug(`Partition ${this.partition.number}: ${this.partition.status.text}, ` +
             `mode: ${this.partition.status.mode}.`);
 
         switch (this.partition.status.text) {
