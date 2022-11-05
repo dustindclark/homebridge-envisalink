@@ -48,6 +48,8 @@ export type Partition = {
     pin?: string;
     chimeActive?: boolean;
     bypassEnabled?: boolean;
+    currentState?: number;
+    targetState?: number;
 };
 
 export const ERROR_CODES: Map<string, string> = new Map([

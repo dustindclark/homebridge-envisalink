@@ -98,6 +98,7 @@ export class EnvisalinkPartitionAccessory {
             || this.accessory.addService(this.platform.Service.SecuritySystem);
         service.setCharacteristic(this.platform.Characteristic.Name, this.partition.name);
         let currentState: number | undefined = undefined;
+        let targetState: number | undefined = undefined;
         let obstructionDetected = false;
         this.platform.log.debug(`Partition ${this.partition.number}: ${this.partition.status.text}, ` +
             `mode: ${this.partition.status.mode}.`);
@@ -116,10 +117,13 @@ export class EnvisalinkPartitionAccessory {
             case 'armedbypass':
                 if (PartitionMode.Stay === this.partition.status.mode) {
                     currentState = this.platform.Characteristic.SecuritySystemCurrentState.STAY_ARM;
+                    targetState = this.platform.Characteristic.SecuritySystemTargetState.STAY_ARM;
                 } else if (PartitionMode.StayZeroEntry === this.partition.status.mode) {
                     currentState = this.platform.Characteristic.SecuritySystemCurrentState.NIGHT_ARM;
+                    targetState = this.platform.Characteristic.SecuritySystemTargetState.NIGHT_ARM;
                 } else {
                     currentState = this.platform.Characteristic.SecuritySystemCurrentState.AWAY_ARM;
+                    targetState = this.platform.Characteristic.SecuritySystemTargetState.AWAY_ARM;
                 }
                 break;
             case 'disarmed':
@@ -138,10 +142,16 @@ export class EnvisalinkPartitionAccessory {
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.DISARMED;
         }
 
-        if (currentState !== undefined) {
-            service.updateCharacteristic(this.platform.Characteristic.SecuritySystemCurrentState,
-                currentState);
+        if (currentState !== undefined && (this.partition.currentState === undefined || this.partition.currentState !== currentState)) {
+            this.partition.currentState = currentState;
         }
+        if (targetState !== undefined && (this.partition.targetState === undefined || this.partition.targetState !== targetState)) {
+            this.partition.targetState = targetState;
+        }
+        service.updateCharacteristic(this.platform.Characteristic.SecuritySystemCurrentState,
+            this.partition.currentState as CharacteristicValue);
+        service.updateCharacteristic(this.platform.Characteristic.SecuritySystemTargetState,
+            this.partition.targetState as CharacteristicValue);
         service.updateCharacteristic(this.platform.Characteristic.ObstructionDetected,
             obstructionDetected);
 
@@ -179,6 +189,7 @@ export class EnvisalinkPartitionAccessory {
 
             this.platform.setLastPartitionAction(this.partition);
             await this.platform.sendAlarmCommand(command);
+            this.partition.targetState = value as number;
             this.platform.log.debug(`Successfully set alarm panel state to ${value} on partition ${this.partition.number}`);
         } catch (error) {
             this.platform.log.error(`Failed setting panel state to ${value}`, error);
