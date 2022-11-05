@@ -148,10 +148,14 @@ export class EnvisalinkPartitionAccessory {
         if (targetState !== undefined && (this.partition.targetState === undefined || this.partition.targetState !== targetState)) {
             this.partition.targetState = targetState;
         }
-        service.updateCharacteristic(this.platform.Characteristic.SecuritySystemCurrentState,
-            this.partition.currentState as CharacteristicValue);
-        service.updateCharacteristic(this.platform.Characteristic.SecuritySystemTargetState,
-            this.partition.targetState as CharacteristicValue);
+        if (this.partition.currentState !== undefined) {
+            service.updateCharacteristic(this.platform.Characteristic.SecuritySystemCurrentState,
+                this.partition.currentState as CharacteristicValue);
+        }
+        if (this.partition.targetState !== undefined) {
+            service.updateCharacteristic(this.platform.Characteristic.SecuritySystemTargetState,
+                this.partition.targetState as CharacteristicValue);
+        }
         service.updateCharacteristic(this.platform.Characteristic.ObstructionDetected,
             obstructionDetected);
 
