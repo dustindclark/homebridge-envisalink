@@ -107,12 +107,12 @@ export class EnvisalinkPartitionAccessory {
             case 'alarm':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.ALARM_TRIGGERED;
                 break;
-            case 'partialclosing':
-            case 'specialclosing':
             case 'chimedisabled':
             case 'chimeenabled':
                 this.platform.log.info(`Ignoring status ${this.partition.status.text}. Waiting for armed/armedbypass`);
                 break;
+            case 'partialclosing':
+            case 'specialclosing':
             case 'armed':
             case 'armedbypass':
                 if (PartitionMode.Stay === this.partition.status.mode) {
