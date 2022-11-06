@@ -100,7 +100,7 @@ export class EnvisalinkPartitionAccessory {
         let currentState: number | undefined = undefined;
         let targetState: number | undefined = undefined;
         let obstructionDetected = false;
-        this.platform.log.info(`Partition ${this.partition.number}: ${this.partition.status.text}, ` +
+        this.platform.log.debug(`Partition ${this.partition.number}: ${this.partition.status.text}, ` +
             `mode: ${this.partition.status.mode}.`);
 
         switch (this.partition.status.text) {
@@ -111,7 +111,7 @@ export class EnvisalinkPartitionAccessory {
             case 'specialclosing':
             case 'chimedisabled':
             case 'chimeenabled':
-                this.platform.log.info(`Ignoring status ${this.partition.status.text}. Waiting for armed/armedbypass`);
+                this.platform.log.debug(`Ignoring status ${this.partition.status.text}. Waiting for armed/armedbypass`);
                 break;
             case 'armed':
             case 'armedbypass':
@@ -145,13 +145,13 @@ export class EnvisalinkPartitionAccessory {
 
         if (currentState !== undefined) {
             this.partition.currentState = currentState;
-            this.platform.log.info(`Setting current state to ${currentState}`);
+            this.platform.log.debug(`Setting current state to ${currentState}`);
             service.updateCharacteristic(this.platform.Characteristic.SecuritySystemCurrentState,
                 this.partition.currentState as CharacteristicValue);
         }
         if (targetState !== undefined) {
             this.partition.targetState = targetState;
-            this.platform.log.info(`Setting target state to ${currentState}`);
+            this.platform.log.debug(`Setting target state to ${currentState}`);
             service.updateCharacteristic(this.platform.Characteristic.SecuritySystemTargetState,
                 this.partition.targetState as CharacteristicValue);
         }
