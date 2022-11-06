@@ -140,6 +140,7 @@ export class EnvisalinkPartitionAccessory {
                 break;
             default:
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.DISARMED;
+                targetState = this.platform.Characteristic.SecuritySystemTargetState.DISARM;
         }
 
         if (currentState !== undefined) {
