@@ -100,7 +100,7 @@ export class EnvisalinkPartitionAccessory {
         let currentState: number | undefined = undefined;
         let targetState: number | undefined = undefined;
         let obstructionDetected = false;
-        this.platform.log.debug(`Partition ${this.partition.number}: ${this.partition.status.text}, ` +
+        this.platform.log.info(`Partition ${this.partition.number}: ${this.partition.status.text}, ` +
             `mode: ${this.partition.status.mode}.`);
 
         switch (this.partition.status.text) {
@@ -144,6 +144,7 @@ export class EnvisalinkPartitionAccessory {
 
         if (currentState !== undefined) {
             this.partition.currentState = currentState;
+            this.platform.log.info(`Setting current state to ${currentState}`);
             service.updateCharacteristic(this.platform.Characteristic.SecuritySystemCurrentState,
                 this.partition.currentState as CharacteristicValue);
         }
@@ -151,6 +152,7 @@ export class EnvisalinkPartitionAccessory {
             this.partition.targetState = targetState;
         }
         if (this.partition.targetState !== undefined) {
+            this.platform.log.info(`Setting target state to ${currentState}`);
             service.updateCharacteristic(this.platform.Characteristic.SecuritySystemTargetState,
                 this.partition.targetState as CharacteristicValue);
         }
