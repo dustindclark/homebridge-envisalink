@@ -140,6 +140,7 @@ export class EnvisalinkPartitionAccessory {
             case 'troubleledoff':
                 break;
             case 'ready':
+            case 'readyforce':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.DISARMED;
                 targetState = this.platform.Characteristic.SecuritySystemTargetState.DISARM;
                 break;
