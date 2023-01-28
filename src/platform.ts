@@ -26,6 +26,8 @@ import {EnvisalinkPanicAccessory} from './panicAccessory';
 import {EnvisalinkCustomCommandAccessory} from './customCommandAccessory';
 import envisalinkCodes = require('nodealarmproxy/envisalink.js');
 import * as util from 'util';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const packageJSON = require('../package.json');
 
 const MILLIS_BETWEEN_WAIT = 100;
 const MILLIS_MAX_WAIT = 30000;
@@ -49,6 +51,8 @@ export class EnvisalinkHomebridgePlatform implements DynamicPlatformPlugin {
     private zoneConfigs: Map<string, ZoneConfig>;
     private chimeInitialized = false;
     private lastPartitionAction?: Partition;
+
+    public reportError = '\nPlease report all bugs at ' + packageJSON.bugs.url + '\n';
 
     constructor(
         public readonly log: Logger,

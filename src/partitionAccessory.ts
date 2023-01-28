@@ -22,7 +22,7 @@ export class EnvisalinkPartitionAccessory {
 
         this.partition = this.accessory.context as Partition;
 
-        this.platform.log.debug(`Setting accessory details for zone: ${JSON.stringify(this.partition, null, 2)}`);
+        this.platform.log.debug(`Setting accessory details for partition: ${JSON.stringify(this.partition, null, 2)}`);
 
         this.bindAccessoryDetails();
         this.bindSecurityPanel();
@@ -137,10 +137,17 @@ export class EnvisalinkPartitionAccessory {
             case 'entrydelay':
             case 'arming':
             case 'busy':
+            case 'troubleledoff':
                 break;
-            default:
+            case 'ready':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.DISARMED;
                 targetState = this.platform.Characteristic.SecuritySystemTargetState.DISARM;
+                break;
+            default:
+                // If we do not recognise the security pannel state then we should not assume
+                // that statis is DISARMED.  Leave it unchanged and log warning message.  With
+                // luck user will report this and provide debug trace.
+                this.platform.log.warn(`Ignoring status '${this.partition.status.text}' (${this.partition.status.description})${this.platform.reportError}`);
         }
 
         if (currentState !== undefined) {
