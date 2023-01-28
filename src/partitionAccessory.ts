@@ -139,6 +139,9 @@ export class EnvisalinkPartitionAccessory {
             case 'busy':
             case 'troubleledoff':
                 break;
+            case 'troubleledon':
+                this.platform.log.info(`Ignoring status '${this.partition.status.text}' (${this.partition.status.description})`);
+                break;
             case 'ready':
             case 'readyforce':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.DISARMED;
