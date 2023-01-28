@@ -129,6 +129,7 @@ export class EnvisalinkPartitionAccessory {
             case 'disarmed':
             case 'notready':
             case 'failedarm':
+            case 'failedtoarm':
             case 'useropening':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.DISARMED;
                 obstructionDetected = true;
