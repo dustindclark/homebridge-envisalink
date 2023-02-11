@@ -115,6 +115,7 @@ export class EnvisalinkPartitionAccessory {
                 break;
             case 'armed':
             case 'armedbypass':
+            case 'userclosing':
                 if (PartitionMode.Stay === this.partition.status.mode) {
                     currentState = this.platform.Characteristic.SecuritySystemCurrentState.STAY_ARM;
                     targetState = this.platform.Characteristic.SecuritySystemTargetState.STAY_ARM;
@@ -130,6 +131,7 @@ export class EnvisalinkPartitionAccessory {
             case 'notready':
             case 'failedtoarm':
             case 'useropening':
+            case 'specialopening':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.DISARMED;
                 obstructionDetected = true;
                 break;
