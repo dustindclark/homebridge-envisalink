@@ -1,6 +1,6 @@
 import {CharacteristicValue, PlatformAccessory} from 'homebridge';
 
-import {EnvisalinkHomebridgePlatform} from './platform';
+import {EnvisalinkHomebridgePlatform, REPORT_ERROR_TXT} from './platform';
 import {MANUFACTURER, MODEL} from './constants';
 import {Partition, PartitionMode} from './types';
 
@@ -22,7 +22,7 @@ export class EnvisalinkPartitionAccessory {
 
         this.partition = this.accessory.context as Partition;
 
-        this.platform.log.debug(`Setting accessory details for zone: ${JSON.stringify(this.partition, null, 2)}`);
+        this.platform.log.debug(`Setting accessory details for partition: ${JSON.stringify(this.partition, null, 2)}`);
 
         this.bindAccessoryDetails();
         this.bindSecurityPanel();
@@ -115,6 +115,7 @@ export class EnvisalinkPartitionAccessory {
                 break;
             case 'armed':
             case 'armedbypass':
+            case 'userclosing':
                 if (PartitionMode.Stay === this.partition.status.mode) {
                     currentState = this.platform.Characteristic.SecuritySystemCurrentState.STAY_ARM;
                     targetState = this.platform.Characteristic.SecuritySystemTargetState.STAY_ARM;
@@ -128,8 +129,9 @@ export class EnvisalinkPartitionAccessory {
                 break;
             case 'disarmed':
             case 'notready':
-            case 'failedarm':
+            case 'failedtoarm':
             case 'useropening':
+            case 'specialopening':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.DISARMED;
                 obstructionDetected = true;
                 break;
@@ -137,10 +139,21 @@ export class EnvisalinkPartitionAccessory {
             case 'entrydelay':
             case 'arming':
             case 'busy':
+            case 'troubleledoff':
                 break;
-            default:
+            case 'troubleledon':
+                this.platform.log.info(`Ignoring status '${this.partition.status.text}' (${this.partition.status.description})`);
+                break;
+            case 'ready':
+            case 'readyforce':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.DISARMED;
                 targetState = this.platform.Characteristic.SecuritySystemTargetState.DISARM;
+                break;
+            default:
+                // If we do not recognise the security panel state then we should not assume
+                // that status is DISARMED.  Leave it unchanged and log warning message.  With
+                // luck user will report this and provide debug trace.
+                this.platform.log.warn(`Ignoring status '${this.partition.status.text}' (${this.partition.status.description})${REPORT_ERROR_TXT}`);
         }
 
         if (currentState !== undefined) {
