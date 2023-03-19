@@ -133,6 +133,7 @@ export class EnvisalinkPartitionAccessory {
             case 'useropening':
             case 'specialopening':
                 currentState = this.platform.Characteristic.SecuritySystemCurrentState.DISARMED;
+                targetState = this.platform.Characteristic.SecuritySystemTargetState.DISARM;
                 obstructionDetected = true;
                 break;
             case 'exitdelay':
