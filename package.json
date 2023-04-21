@@ -39,7 +39,7 @@
     "nodealarmproxy": "https://github.com/dustindclark/NodeAlarmProxy/tarball/0abdfe688451cc57b0bbd64cf54e38e54a2d2a67"
   },
   "devDependencies": {
-    "@types/node": "^18.11.17",
+    "@types/node": "^18.15.13",
     "@types/jest": "^27.0.3",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.47.0",
